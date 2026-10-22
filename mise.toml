@@ -1,0 +1,66 @@
+# Задачи проекта. Параметры хоста — в mise.local.toml (вне git), пример: mise.local.toml.example
+# Документация: docs/operations/tunnel.md
+
+[tasks."tunnel:up"]
+description = "Поднять SSH-туннель к локальным интерфейсам VPS (панель CPA и др.)"
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+: "${GOLEM_SSH_HOST:?задайте GOLEM_SSH_HOST в mise.local.toml}"
+: "${GOLEM_SSH_PORT:?задайте GOLEM_SSH_PORT в mise.local.toml}"
+: "${GOLEM_SSH_USER:=ronnie}"
+: "${GOLEM_TUNNEL_FORWARDS:=8317:127.0.0.1:8317}"
+sock="${TMPDIR:-/tmp}/golem-tunnel-${GOLEM_SSH_HOST}.sock"
+if [ -S "$sock" ] && ssh -S "$sock" -O check "$GOLEM_SSH_USER@$GOLEM_SSH_HOST"; then
+  echo "туннель уже поднят ($sock)"; exit 0
+fi
+args=()
+for f in $GOLEM_TUNNEL_FORWARDS; do args+=(-L "127.0.0.1:$f"); done
+ssh -f -N -M -S "$sock" -p "$GOLEM_SSH_PORT" \
+  -o ExitOnForwardFailure=yes -o ServerAliveInterval=30 -o ServerAliveCountMax=3 \
+  "${args[@]}" "$GOLEM_SSH_USER@$GOLEM_SSH_HOST"
+echo "туннель поднят: $GOLEM_TUNNEL_FORWARDS"
+'''
+
+[tasks."tunnel:status"]
+description = "Состояние SSH-туннеля"
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+: "${GOLEM_SSH_HOST:?}"; : "${GOLEM_SSH_USER:=ronnie}"
+sock="${TMPDIR:-/tmp}/golem-tunnel-${GOLEM_SSH_HOST}.sock"
+ssh -S "$sock" -O check "$GOLEM_SSH_USER@$GOLEM_SSH_HOST"
+'''
+
+[tasks."tunnel:down"]
+description = "Закрыть SSH-туннель"
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+: "${GOLEM_SSH_HOST:?}"; : "${GOLEM_SSH_USER:=ronnie}"
+sock="${TMPDIR:-/tmp}/golem-tunnel-${GOLEM_SSH_HOST}.sock"
+ssh -S "$sock" -O exit "$GOLEM_SSH_USER@$GOLEM_SSH_HOST"
+'''
+
+[tasks."cpa:panel"]
+description = "Поднять туннель и открыть панель управления CPA в браузере"
+depends = ["tunnel:up"]
+run = 'open "http://127.0.0.1:${GOLEM_CPA_LOCAL_PORT:-8317}/management.html"'
+
+# Секреты (sops + age). Логика — scripts/secrets.sh; документация: docs/operations/secrets.md
+[tasks."secrets:init"]
+description = "Создать age-ключ (если нет), .sops.yaml и секреты хоста: secrets:init <host>"
+run = "scripts/secrets.sh init"
+
+[tasks."secrets:edit"]
+description = "Править секреты в редакторе: secrets:edit <host|common>"
+run = "scripts/secrets.sh edit"
+
+[tasks."secrets:rotate"]
+description = "Ротировать секреты: secrets:rotate <host> <uuid|paths|llm|mgmt|all>"
+run = "scripts/secrets.sh rotate"
+
+# Сборка артефактов на Mac. Документация: docs/operations/build-artifacts.md
+[tasks."build:artifacts"]
+description = "Собрать caddy/web/relay в build/: build:artifacts [caddy|web|relay|all]; TARGET_ARCH=amd64|arm64"
+run = "scripts/build-artifacts.sh"

@@ -1,0 +1,31 @@
+# Тестовый стенд, имитирующий целевой VPS (Debian 12, 1 CPU, 1 GiB RAM).
+# Запуск: limactl start --name=golem-test infra/lima/vps-test.yaml
+# Подключение: limactl shell golem-test  или  ssh -p 60022 ronnie@127.0.0.1
+minimumLimaVersion: "2.0.0"
+vmType: vz
+arch: aarch64   # нативно на Apple Silicon; для Intel Mac — x86_64
+cpus: 1
+memory: "1GiB"  # жёсткий лимит, как на дешёвом VPS
+disk: "10GiB"
+images:
+  - location: "https://cloud.debian.org/images/cloud/bookworm/latest/debian-12-genericcloud-arm64.qcow2"
+    arch: aarch64
+  - location: "https://cloud.debian.org/images/cloud/bookworm/latest/debian-12-genericcloud-amd64.qcow2"
+    arch: x86_64
+user:
+  name: ronnie
+mounts: []
+containerd:
+  system: false
+  user: false
+ssh:
+  localPort: 60022
+  loadDotSSHPubKeys: true
+provision:
+  - mode: system
+    script: |
+      #!/bin/bash
+      set -eux
+      apt-get update
+      apt-get install -y python3 python3-apt sudo
+      echo "ronnie ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/ronnie
