@@ -44,11 +44,11 @@ C4Context
 
 | Путь | Назначение | Статус |
 | :--- | :--- | :--- |
-| `infra/ansible/` | инвентори, роли, плейбуки | скелет |
+| `infra/ansible/` | инвентори, роли, плейбуки | роли base, firewall, ssh_hardening, caddy, xray, cliproxyapi, omp_relay проверены на Lima; fail2ban, ops_timers, client_artifacts, gatus — скелет |
 | `infra/lima/` | шаблоны Lima для тестов | шаблон `vps-test.yaml` (не проверен) |
 | `build/` | артефакты сборки на Mac (в .gitignore) | заполняется `build:artifacts` |
 | `scripts/` | `secrets.sh` (секреты), `build-artifacts.sh` (сборка) | готово |
-| `mise.toml` | задачи: SSH-туннель (`tunnel:*`), `cpa:panel`, `secrets:*`, `build:artifacts`; параметры в `mise.local.toml` (вне git) | готово |
+| `mise.toml` | задачи: SSH-туннель (`tunnel:*`), `cpa:panel`, `secrets:*`, `build:artifacts`, `ansible:*`; параметры в `mise.local.toml` (вне git) | готово |
 | `clients/templates/` | шаблоны клиентских конфигов (mihomo) | скелет |
 | `docs/` | документация | заполнена в раунде 1 |
 | `local/` | служебное, вне git | не коммитить, не удалять |

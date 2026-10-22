@@ -4,7 +4,7 @@
 
 ## Общее (Lima и прод)
 1. `ansible-playbook site.yml` повторно: `changed=0`.
-2. `ss -tlnp`: вне 127.0.0.1 — только Caddy:443 и sshd.
+2. `ss -tlnp`: вне 127.0.0.1 — Caddy:443, sshd и relay:7466 (последний недоступен снаружи: `IPAddressDeny`, UFW).
 3. `systemctl --failed` пусто; `systemctl show <svc> -p MemoryMax`.
 4. `curl -I https://<domain>/` → 200 лендинг; случайный путь → тот же лендинг; `/r/x` без Upgrade → лендинг/404 (не 400/502).
 5. WS-handshake на `/r/<id>?role=host` с `Upgrade` → 101; на `/<ws_path>` → 101 или ответ Xray.

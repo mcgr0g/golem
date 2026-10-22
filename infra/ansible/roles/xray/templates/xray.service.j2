@@ -1,0 +1,23 @@
+# {{ ansible_managed }}
+[Unit]
+Description=Xray
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=xray
+Group=xray
+# geoip.dat/geosite.dat лежат рядом с бинарником; без них правило geoip:private не загрузится
+Environment=XRAY_LOCATION_ASSET=/opt/xray/current
+ExecStart=/opt/xray/current/xray run -config /etc/xray/config.json
+Restart=on-failure
+RestartSec=5
+MemoryHigh=80M
+MemoryMax=96M
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

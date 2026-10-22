@@ -1,0 +1,122 @@
+# {{ ansible_managed }}
+{
+	order rate_limit before basicauth
+	# 80 не слушаем: без редиректов, без HTTP-01
+	auto_https disable_redirects
+	servers {
+		protocols h1 h2
+	}
+}
+
+{{ domain }} {
+{% if tls_mode == 'internal' %}
+	tls internal
+{% elif tls_mode == 'acme' %}
+	tls {
+		issuer acme {
+			disable_http_challenge
+{% if caddy_acme_ca %}
+			dir {{ caddy_acme_ca }}
+{% endif %}
+		}
+	}
+{% elif tls_mode == 'dns01_duckdns' %}
+	tls {
+		issuer acme {
+			dns duckdns {env.DUCK_TOKEN}
+{% if caddy_acme_ca %}
+			dir {{ caddy_acme_ca }}
+{% endif %}
+		}
+	}
+{% endif %}
+
+	log {
+		output file /var/log/caddy/access.log {
+			roll_size 10MiB
+			roll_keep 3
+		}
+		format json
+	}
+
+	header -Server
+	header Strict-Transport-Security "max-age=31536000"
+
+	@ws_relay {
+		path /r/*
+		header Connection *Upgrade*
+		header Upgrade websocket
+	}
+	@ws_xray {
+		path /{{ ws_path }}
+		header Connection *Upgrade*
+		header Upgrade websocket
+	}
+
+	handle @ws_relay {
+		rate_limit {
+			zone ws {
+				key {remote_host}
+				events {{ caddy_rl_ws }}
+				window 1m
+			}
+		}
+		reverse_proxy 127.0.0.1:7466
+	}
+	handle @ws_xray {
+		rate_limit {
+			zone ws_xray {
+				key {remote_host}
+				events {{ caddy_rl_ws }}
+				window 1m
+			}
+		}
+		reverse_proxy 127.0.0.1:10000
+	}
+	# Белый список: наружу только /v1/*. Остальное (/management.html, /v0/management/*, OAuth-callback)
+	# закрыто: запрос от Caddy приходит с 127.0.0.1 и считался бы локальным (components/cliproxyapi.md)
+	handle /{{ llm_path }}/v1/* {
+		rate_limit {
+			zone llm {
+				key {remote_host}
+				events {{ caddy_rl_llm }}
+				window 1m
+			}
+		}
+		uri strip_prefix /{{ llm_path }}
+		reverse_proxy 127.0.0.1:8317
+	}
+	handle /{{ llm_path }}/* {
+		respond 404
+	}
+	redir /{{ app_path }} /{{ app_path }}/ 308
+	handle_path /{{ app_path }}/* {
+		rate_limit {
+			zone static_app {
+				key {remote_host}
+				events {{ caddy_rl_static }}
+				window 1m
+			}
+		}
+		root * {{ caddy_web_root }}
+		file_server
+	}
+	handle {
+		rate_limit {
+			zone static_landing {
+				key {remote_host}
+				events {{ caddy_rl_static }}
+				window 1m
+			}
+		}
+		root * {{ caddy_landing_root }}
+		try_files {path} /index.html
+		file_server
+	}
+
+	# 429 и прочие ошибки, сгенерированные самим Caddy, тоже без заголовка Server
+	handle_errors {
+		header -Server
+		respond "{err.status_code} {err.status_text}" {err.status_code}
+	}
+}

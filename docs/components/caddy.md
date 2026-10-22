@@ -17,7 +17,7 @@
 - DNS-01 DuckDNS проверен на staging CA для `golem-dev.duckdns.org` (Caddy на Mac, выпуск ~20 с, плагин меняет только TXT). Плагин при сетевой ошибке пишет токен в текст ошибки (URL с `token=`): лог Caddy закрыт (0640, `caddy:adm`), токен считать скомпрометированным при утечке лога.
 - Не проверено: боевой CA (первая попытка упала на TLS handshake timeout к www.duckdns.org до создания челленджа), сам TLS-ALPN-01 (нужен публичный хост), запуск сборки amd64.
 
-Проверенный Caddyfile (переменные окружения: DOMAIN, WS_PATH, LLM_PATH, APP_PATH, RL_*, APP_ROOT, LANDING_ROOT, LOG_FILE, TLS_LINE; в Ansible — шаблон). Редирект `/<app_path>` → `/<app_path>/` добавить (`redir`).
+Проверенный Caddyfile — образец; рабочая версия — шаблон `roles/caddy/templates/Caddyfile.j2` (Jinja вместо `{$ENV}`, `redir` уже добавлен). Конфиг проверяется `caddy adapt` до записи (`validate` через `caddy validate` создал бы лог-файл от root). Проверено в Lima: 401/200 для /v1/*, 404 для management и `..`, 308 на `/<app_path>`, WS 101 для Xray и relay, заголовка `Server` нет; RSS ~17 MB cgroup в покое. Редирект `/<app_path>` → `/<app_path>/` добавить (`redir`).
 
 ```
 {

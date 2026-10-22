@@ -1,3 +1,3 @@
 # Роль cliproxyapi
 
-Скелет. Описание: docs/components/ и docs/operations/ansible-layout.md. Реализация — следующий раунд.
+Релиз по sha256, конфиг v8 с bcrypt-хэшем, панель с пиннингом, юнит. `docs/components/cliproxyapi.md`.

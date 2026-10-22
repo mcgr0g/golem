@@ -1,0 +1,93 @@
+---
+- name: Хэш relay на Mac
+  ansible.builtin.stat:
+    path: "{{ build_dir }}/{{ target_arch }}/omp-relay"
+    checksum_algorithm: sha256
+  register: omp_relay_local
+  delegate_to: localhost
+  become: false
+
+- name: Хэш веб-клиента на Mac (тот же алгоритм, что в build-artifacts.sh)
+  ansible.builtin.shell: |
+    set -o pipefail
+    cd '{{ build_dir }}/omp-web' && find . -type f | LC_ALL=C sort | xargs shasum -a 256 | shasum -a 256 | cut -d' ' -f1
+  args:
+    executable: /bin/bash
+  register: omp_relay_web_local
+  changed_when: false
+  delegate_to: localhost
+  become: false
+
+- name: Артефакты собраны и совпадают с манифестом
+  ansible.builtin.assert:
+    that:
+      - omp_relay_local.stat.exists
+      - omp_relay_local.stat.checksum == build_manifest.artifacts['relay-' ~ target_arch].sha256
+      - omp_relay_web_local.stdout == build_manifest.artifacts.web.sha256
+    fail_msg: "build/ отсутствует или не совпадает с manifest.json: mise run build:artifacts"
+    quiet: true
+
+- name: Группа omp-relay
+  ansible.builtin.group:
+    name: omp-relay
+    system: true
+
+- name: Пользователь omp-relay
+  ansible.builtin.user:
+    name: omp-relay
+    group: omp-relay
+    system: true
+    create_home: false
+    shell: /usr/sbin/nologin
+
+- name: Бинарник relay
+  ansible.builtin.copy:
+    src: "{{ build_dir }}/{{ target_arch }}/omp-relay"
+    dest: /usr/local/bin/omp-relay
+    owner: root
+    group: root
+    mode: "0755"
+  notify: Перезапустить omp-relay
+
+- name: Каталог веб-клиента
+  ansible.builtin.file:
+    path: "{{ omp_relay_web_root }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Веб-клиент
+  ansible.posix.synchronize:
+    src: "{{ build_dir }}/omp-web/"
+    dest: "{{ omp_relay_web_root }}/"
+    delete: true
+    checksum: true
+    owner: false
+    group: false
+    perms: false
+
+- name: Права веб-клиента
+  ansible.builtin.file:
+    path: "{{ omp_relay_web_root }}"
+    state: directory
+    recurse: true
+    owner: root
+    group: root
+    mode: u=rwX,go=rX
+
+- name: Юнит
+  ansible.builtin.template:
+    src: omp-relay.service.j2
+    dest: /etc/systemd/system/omp-relay.service
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Перезапустить omp-relay
+
+- name: Запуск omp-relay
+  ansible.builtin.systemd:
+    name: omp-relay
+    enabled: true
+    state: started
+    daemon_reload: true

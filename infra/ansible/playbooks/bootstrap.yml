@@ -1,0 +1,74 @@
+---
+# Первичная настройка свежего VPS под root (порт 22):
+#   ansible-playbook -i inventories/prod/hosts.yml playbooks/bootstrap.yml -e ansible_port=22 -e ansible_user=root
+# Затем site.yml под пользователем ronnie на порту ssh_port.
+# sshd на время перехода слушает 22 и ssh_port; роль ssh_hardening оставит только ssh_port.
+- name: Bootstrap
+  hosts: golem
+  gather_facts: false
+  vars:
+    bootstrap_user: "{{ ssh_user }}"
+  pre_tasks:
+    - name: Python для модулей Ansible
+      ansible.builtin.raw: test -x /usr/bin/python3 || (apt-get update && apt-get install -y python3 sudo)
+      register: bootstrap_python
+      changed_when: "'Setting up python3' in bootstrap_python.stdout"
+  tasks:
+    - name: Собрать факты
+      ansible.builtin.setup:
+
+    - name: Проверить ключи
+      ansible.builtin.assert:
+        that: ssh_authorized_keys | length > 0
+        fail_msg: "Задайте ssh_authorized_keys (inventories/prod/group_vars/all/ssh_keys.yml)"
+        quiet: true
+
+    - name: Пользователь
+      ansible.builtin.user:
+        name: "{{ bootstrap_user }}"
+        shell: /bin/bash
+        groups: sudo
+        append: true
+        password_lock: true
+
+    - name: Ключи пользователя
+      ansible.posix.authorized_key:
+        user: "{{ bootstrap_user }}"
+        key: "{{ item }}"
+        exclusive: false
+      loop: "{{ ssh_authorized_keys }}"
+
+    - name: Sudo без пароля (вход только по ключу)
+      ansible.builtin.copy:
+        content: "{{ bootstrap_user }} ALL=(ALL) NOPASSWD:ALL\n"
+        dest: "/etc/sudoers.d/90-{{ bootstrap_user }}"
+        mode: "0440"
+        owner: root
+        group: root
+        validate: visudo -cf %s
+
+    - name: Порт SSH на время перехода (22 и ssh_port)
+      ansible.builtin.copy:
+        content: "Port 22\nPort {{ ssh_port }}\n"
+        dest: /etc/ssh/sshd_config.d/00-bootstrap.conf
+        mode: "0644"
+        owner: root
+        group: root
+      notify: Перезапустить sshd
+
+    - name: Применить sshd до проверки порта
+      ansible.builtin.meta: flush_handlers
+
+    - name: Новый порт SSH отвечает
+      ansible.builtin.wait_for:
+        host: "{{ ansible_host }}"
+        port: "{{ ssh_port | int }}"
+        timeout: 30
+      delegate_to: localhost
+      become: false
+
+  handlers:
+    - name: Перезапустить sshd
+      ansible.builtin.systemd:
+        name: ssh
+        state: restarted

@@ -1,0 +1,97 @@
+---
+- name: Группа cliproxyapi
+  ansible.builtin.group:
+    name: cliproxyapi
+    system: true
+
+- name: Пользователь cliproxyapi
+  ansible.builtin.user:
+    name: cliproxyapi
+    group: cliproxyapi
+    system: true
+    home: /var/lib/cliproxyapi
+    create_home: false
+    shell: /usr/sbin/nologin
+
+- name: Каталоги
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: directory
+    owner: "{{ item.owner }}"
+    group: "{{ item.group }}"
+    mode: "{{ item.mode }}"
+  loop:
+    - { path: /opt/cliproxyapi, owner: root, group: root, mode: "0755" }
+    - { path: "/opt/cliproxyapi/{{ cliproxyapi_version }}", owner: root, group: root, mode: "0755" }
+    - { path: /etc/cliproxyapi, owner: root, group: cliproxyapi, mode: "0750" }
+    - { path: /var/lib/cliproxyapi, owner: cliproxyapi, group: cliproxyapi, mode: "0700" }
+    # приложение создаёт auth с 0755, поэтому заранее с 0700
+    - { path: /var/lib/cliproxyapi/auth, owner: cliproxyapi, group: cliproxyapi, mode: "0700" }
+    - { path: /var/lib/cliproxyapi/static, owner: root, group: root, mode: "0755" }
+
+- name: Скачать релиз (sha256 из versions.yml)
+  ansible.builtin.get_url:
+    url: "https://github.com/router-for-me/CLIProxyAPI/releases/download/v{{ cliproxyapi_version }}/{{ cliproxyapi_assets[target_arch].name }}"
+    dest: "/var/tmp/{{ cliproxyapi_assets[target_arch].name }}"
+    checksum: "sha256:{{ cliproxyapi_assets[target_arch].sha256 }}"
+    mode: "0644"
+    timeout: 60
+  register: cliproxyapi_download
+  until: cliproxyapi_download is succeeded
+  retries: 3
+  delay: 5
+
+- name: Распаковать
+  ansible.builtin.unarchive:
+    src: "/var/tmp/{{ cliproxyapi_assets[target_arch].name }}"
+    dest: "/opt/cliproxyapi/{{ cliproxyapi_version }}"
+    remote_src: true
+    creates: "/opt/cliproxyapi/{{ cliproxyapi_version }}/cli-proxy-api"
+
+- name: Текущая версия
+  ansible.builtin.file:
+    src: "/opt/cliproxyapi/{{ cliproxyapi_version }}"
+    dest: /opt/cliproxyapi/current
+    state: link
+  notify: Перезапустить cliproxyapi
+
+- name: Панель управления (пиннинг по sha256, до первого старта)
+  ansible.builtin.get_url:
+    url: "https://github.com/router-for-me/Cli-Proxy-API-Management-Center/releases/download/{{ cpa_panel_version }}/management.html"
+    dest: /var/lib/cliproxyapi/static/management.html
+    checksum: "sha256:{{ cpa_panel_sha256 }}"
+    owner: root
+    group: root
+    mode: "0644"
+    timeout: 60
+  notify: Перезапустить cliproxyapi
+  register: cliproxyapi_panel_download
+  until: cliproxyapi_panel_download is succeeded
+  retries: 3
+  delay: 5
+
+- name: Конфиг
+  ansible.builtin.template:
+    src: config.yaml.j2
+    dest: /etc/cliproxyapi/config.yaml
+    owner: root
+    group: cliproxyapi
+    mode: "0640"
+  no_log: true
+  notify: Перезапустить cliproxyapi
+
+- name: Юнит
+  ansible.builtin.template:
+    src: cliproxyapi.service.j2
+    dest: /etc/systemd/system/cliproxyapi.service
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Перезапустить cliproxyapi
+
+- name: Запуск cliproxyapi
+  ansible.builtin.systemd:
+    name: cliproxyapi
+    enabled: true
+    state: started
+    daemon_reload: true

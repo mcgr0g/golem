@@ -13,7 +13,7 @@
 | Telegram токен/чат | sops общий | опционально |
 | SSH-ключ | Mac (`~/.ssh`) | `ssh-keygen -t ed25519` |
 
-Решение: `decisions/0010-secrets-sops-age.md`. Правила: у каждого VPS свои UUID/пути/ключ (общий компрометирует все). Приватный age-ключ — только у владельца (`~/.config/sops/age/keys.txt`), бэкап в менеджере паролей. Ротация: `playbooks/rotate-secrets.yml --tags <uuid|paths|llm>`, затем перегенерация `clients/generated/`. Файлы на VPS: 0600, владелец — пользователь сервиса.
+Решение: `decisions/0010-secrets-sops-age.md`. Правила: у каждого VPS свои UUID/пути/ключ (общий компрометирует все). Приватный age-ключ — только у владельца (`~/.config/sops/age/keys.txt`), бэкап в менеджере паролей. Ротация: `secrets:rotate`, затем `ansible:site prod --tags caddy,xray,cliproxyapi`, затем перегенерация `clients/generated/`. Файлы на VPS: 0600, владелец — пользователь сервиса.
 
 ## Инструкция для начинающих (sops + age)
 

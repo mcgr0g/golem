@@ -1,0 +1,39 @@
+---
+- name: Пакет ufw
+  ansible.builtin.apt:
+    name: ufw
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: IPv6 в ufw
+  ansible.builtin.lineinfile:
+    path: /etc/default/ufw
+    regexp: '^IPV6='
+    line: IPV6=yes
+
+- name: Политика по умолчанию, входящие
+  community.general.ufw:
+    default: deny
+    direction: incoming
+
+- name: Политика по умолчанию, исходящие
+  community.general.ufw:
+    default: allow
+    direction: outgoing
+
+- name: Порт SSH
+  community.general.ufw:
+    rule: allow
+    port: "{{ ssh_port | string }}"
+    proto: tcp
+
+- name: Публичные порты
+  community.general.ufw:
+    rule: allow
+    port: "{{ item | string }}"
+    proto: tcp
+  loop: "{{ firewall_public_tcp_ports }}"
+
+- name: Включить ufw
+  community.general.ufw:
+    state: enabled

@@ -22,12 +22,12 @@ host_file() {
 encrypt_to() {
   local target="$1" tmp
   tmp="$(mktemp)"
-  trap 'rm -f "$tmp"' RETURN
   cat >"$tmp"
   if ! sops --config "$sops_cfg" encrypt --filename-override "${target#"$root"/}" "$tmp" >"$target.new"; then
-    rm -f "$target.new"
+    rm -f "$target.new" "$tmp"
     die "не удалось зашифровать $target"
   fi
+  rm -f "$tmp"
   mv "$target.new" "$target"
   chmod 600 "$target"
 }

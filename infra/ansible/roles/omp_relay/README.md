@@ -1,3 +1,3 @@
 # Роль omp_relay
 
-Скелет. Описание: docs/components/ и docs/operations/ansible-layout.md. Реализация — следующий раунд.
+Бинарник relay и веб-клиент из `build/`, юнит с `IPAddressAllow=localhost`. `docs/components/omp-relay.md`.

@@ -1,0 +1,3 @@
+exclude_paths:
+  - secrets/
+  - inventories/prod/group_vars/all/ssh_keys.yml

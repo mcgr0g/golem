@@ -1,3 +1,3 @@
 # Роль xray
 
-Скелет. Описание: docs/components/ и docs/operations/ansible-layout.md. Реализация — следующий раунд.
+Релиз по sha256 из versions.yml, конфиг VLESS+WS, юнит. `docs/components/xray.md`.

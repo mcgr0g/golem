@@ -1,0 +1,96 @@
+---
+- name: Хэш бинарника на Mac
+  ansible.builtin.stat:
+    path: "{{ build_dir }}/{{ target_arch }}/caddy"
+    checksum_algorithm: sha256
+  register: caddy_local
+  delegate_to: localhost
+  become: false
+
+- name: Бинарник собран и совпадает с манифестом
+  ansible.builtin.assert:
+    that:
+      - caddy_local.stat.exists
+      - caddy_local.stat.checksum == build_manifest.artifacts['caddy-' ~ target_arch].sha256
+    fail_msg: "build/{{ target_arch }}/caddy отсутствует или не совпадает с manifest.json: mise run build:artifacts caddy"
+    quiet: true
+
+- name: Группа caddy
+  ansible.builtin.group:
+    name: caddy
+    system: true
+
+- name: Пользователь caddy
+  ansible.builtin.user:
+    name: caddy
+    group: caddy
+    system: true
+    home: /var/lib/caddy
+    create_home: false
+    shell: /usr/sbin/nologin
+
+- name: Каталоги
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: directory
+    owner: "{{ item.owner }}"
+    group: "{{ item.group }}"
+    mode: "{{ item.mode }}"
+  loop:
+    - { path: /etc/caddy, owner: root, group: caddy, mode: "0750" }
+    - { path: /var/lib/caddy, owner: caddy, group: caddy, mode: "0700" }
+    - { path: /var/log/caddy, owner: caddy, group: adm, mode: "0750" }
+    - { path: "{{ caddy_landing_root }}", owner: root, group: root, mode: "0755" }
+
+- name: Бинарник caddy
+  ansible.builtin.copy:
+    src: "{{ build_dir }}/{{ target_arch }}/caddy"
+    dest: /usr/local/bin/caddy
+    owner: root
+    group: root
+    mode: "0755"
+  notify: Перезапустить caddy
+
+- name: Лендинг
+  ansible.builtin.template:
+    src: landing.html.j2
+    dest: "{{ caddy_landing_root }}/index.html"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Переменные окружения (токен DuckDNS)
+  ansible.builtin.template:
+    src: env.j2
+    dest: /etc/caddy/env
+    owner: root
+    group: caddy
+    mode: "0640"
+  no_log: true
+  notify: Перезапустить caddy
+
+- name: Caddyfile
+  ansible.builtin.template:
+    src: Caddyfile.j2
+    dest: /etc/caddy/Caddyfile
+    owner: root
+    group: caddy
+    mode: "0640"
+    validate: /usr/local/bin/caddy adapt --config %s --adapter caddyfile
+  notify: Перезапустить caddy
+
+- name: Юнит caddy
+  ansible.builtin.template:
+    src: caddy.service.j2
+    dest: /etc/systemd/system/caddy.service
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Перезапустить caddy
+
+- name: Запуск caddy
+  ansible.builtin.systemd:
+    name: caddy
+    enabled: true
+    state: started
+    daemon_reload: true

@@ -13,4 +13,4 @@
 Бан по VLESS-пути не делаем: клиент с легитимным UUID не должен банить сам себя при реконнектах; защита — rate limit.
 
 ## Проверка
-`ufw status verbose`, `fail2ban-client status`, `ss -tlnp` — вне 127.0.0.1 слушают только Caddy и sshd.
+`ufw status verbose`, `fail2ban-client status`, `ss -tlnp` — вне 127.0.0.1 слушают Caddy, sshd и relay (`*:7466`, закрыт `IPAddressDeny`/UFW, `components/omp-relay.md`).

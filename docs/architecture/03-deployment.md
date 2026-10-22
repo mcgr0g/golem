@@ -24,7 +24,7 @@ flowchart TB
 | 443/tcp | 0.0.0.0 | Caddy | да |
 | `<ssh_port>`/tcp | 0.0.0.0 | sshd, ключи, без пароля | да (исключение из «только 443», ограничено fail2ban) |
 | 80/tcp | — | не слушается; ACME через TLS-ALPN-01 | нет |
-| 7466, 10000, 8317 | 127.0.0.1 | relay, Xray, cliproxyapi | нет |
+| 7466, 10000, 8317 | 127.0.0.1 (relay: `*`, ограничен `IPAddressAllow=localhost`) | relay, Xray, cliproxyapi | нет |
 
 ## RAM-бюджет (частично измерено на aarch64 Lima; на x86 перемерить)
 | Компонент | Покой | Нагрузка | `MemoryMax` |

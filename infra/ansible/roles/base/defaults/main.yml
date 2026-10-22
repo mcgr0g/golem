@@ -1,0 +1,7 @@
+---
+base_packages: [ca-certificates, curl, unzip, rsync, unattended-upgrades]
+base_swap_mb: 512
+base_swappiness: 10
+base_journald_max_use: 50M
+# Юниты, которые нужно отключить, если они есть (в minimal-образах обычно пусто)
+base_disable_units: []

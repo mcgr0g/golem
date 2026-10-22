@@ -1,0 +1,25 @@
+# {{ ansible_managed }}
+[Unit]
+Description=CLIProxyAPI
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=cliproxyapi
+Group=cliproxyapi
+WorkingDirectory=/var/lib/cliproxyapi
+# без этой переменной каталог конфига read-only и панель отвечает 404
+Environment=MANAGEMENT_STATIC_PATH=/var/lib/cliproxyapi/static
+ExecStart=/opt/cliproxyapi/current/cli-proxy-api --config /etc/cliproxyapi/config.yaml
+Restart=on-failure
+RestartSec=5
+MemoryHigh=96M
+MemoryMax=128M
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/var/lib/cliproxyapi
+
+[Install]
+WantedBy=multi-user.target

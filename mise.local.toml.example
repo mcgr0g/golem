@@ -3,5 +3,7 @@
 GOLEM_SSH_HOST = "<domain или IP VPS>"
 GOLEM_SSH_PORT = "<ssh_port>"
 GOLEM_SSH_USER = "ronnie"
+GOLEM_DOMAIN = "<sub>.duckdns.org"
+GOLEM_DUCKDNS_SUBDOMAIN = "<sub>"
 # локальный_порт:удалённый_хост:удалённый_порт, через пробел
 GOLEM_TUNNEL_FORWARDS = "8317:127.0.0.1:8317"

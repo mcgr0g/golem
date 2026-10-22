@@ -1,0 +1,8 @@
+---
+caddy_acme_ca: ""   # URL каталога ACME (staging для dns01_duckdns); пусто = боевой Let's Encrypt
+caddy_web_root: /var/www/omp-web
+caddy_landing_root: /var/www/landing
+# Лимиты событий в минуту на IP; значения — оценка, подбор на проде (Q8)
+caddy_rl_ws: 30
+caddy_rl_llm: 120
+caddy_rl_static: 120

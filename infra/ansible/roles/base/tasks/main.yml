@@ -1,0 +1,96 @@
+---
+- name: Пакеты
+  ansible.builtin.apt:
+    name: "{{ base_packages }}"
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Автообновления только security
+  ansible.builtin.copy:
+    content: |
+      APT::Periodic::Update-Package-Lists "1";
+      APT::Periodic::Unattended-Upgrade "1";
+    dest: /etc/apt/apt.conf.d/20auto-upgrades
+    mode: "0644"
+    owner: root
+    group: root
+
+- name: Файл подкачки
+  ansible.builtin.command: fallocate -l {{ base_swap_mb }}M /swapfile
+  args:
+    creates: /swapfile
+
+- name: Права файла подкачки
+  ansible.builtin.file:
+    path: /swapfile
+    mode: "0600"
+    owner: root
+    group: root
+
+- name: Сигнатура swap
+  ansible.builtin.command: blkid -p -s TYPE -o value /swapfile
+  register: base_swap_sig
+  changed_when: false
+  # blkid: код 2 = сигнатур нет (файл ещё не форматирован), это ожидаемое состояние
+  failed_when: base_swap_sig.rc not in [0, 2]
+
+- name: Форматировать swap
+  ansible.builtin.command: mkswap /swapfile
+  changed_when: true
+  when: base_swap_sig.stdout != 'swap'
+
+- name: Swap в fstab
+  ansible.posix.mount:
+    src: /swapfile
+    path: none
+    fstype: swap
+    opts: sw
+    state: present
+
+- name: Активные swap
+  ansible.builtin.command: swapon --show=NAME --noheadings
+  register: base_swap_active
+  changed_when: false
+
+- name: Включить swap
+  ansible.builtin.command: swapon /swapfile
+  changed_when: true
+  when: "'/swapfile' not in base_swap_active.stdout"
+
+- name: Параметр swappiness
+  ansible.posix.sysctl:
+    name: vm.swappiness
+    value: "{{ base_swappiness }}"
+    sysctl_file: /etc/sysctl.d/90-golem.conf
+    state: present
+
+- name: Каталог drop-in journald
+  ansible.builtin.file:
+    path: /etc/systemd/journald.conf.d
+    state: directory
+    mode: "0755"
+    owner: root
+    group: root
+
+- name: Лимит журнала
+  ansible.builtin.copy:
+    content: |
+      [Journal]
+      SystemMaxUse={{ base_journald_max_use }}
+    dest: /etc/systemd/journald.conf.d/90-golem.conf
+    mode: "0644"
+    owner: root
+    group: root
+  notify: Перезапустить journald
+
+- name: Состояние служб
+  ansible.builtin.service_facts:
+  when: base_disable_units | length > 0
+
+- name: Отключить лишние службы (только существующие)
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    enabled: false
+    state: stopped
+  loop: "{{ base_disable_units }}"
+  when: item ~ '.service' in ansible_facts.services | default({})

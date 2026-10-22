@@ -1,0 +1,23 @@
+# {{ ansible_managed }}
+[Unit]
+Description=omp relay
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=omp-relay
+Group=omp-relay
+ExecStart=/usr/local/bin/omp-relay --port {{ omp_relay_port }}
+Restart=on-failure
+RestartSec=5
+MemoryMax=128M
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+# relay не умеет выбирать адрес привязки и слушает на всех интерфейсах: трафик только через loopback (Caddy)
+IPAddressDeny=any
+IPAddressAllow=localhost
+
+[Install]
+WantedBy=multi-user.target

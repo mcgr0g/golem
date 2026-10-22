@@ -1,0 +1,47 @@
+---
+# Полное развёртывание. Прогон: ansible-playbook -i inventories/<env>/hosts.yml playbooks/site.yml [--tags caddy]
+- name: Golem VPS
+  hosts: golem
+  become: true
+  vars_files:
+    - ../group_vars/all/versions.yml
+  vars:
+    build_dir: "{{ playbook_dir }}/../../../build"
+    secrets_dir: "{{ playbook_dir }}/../secrets"
+    build_manifest: "{{ lookup('ansible.builtin.file', build_dir ~ '/manifest.json') | from_json }}"
+  pre_tasks:
+    - name: Загрузить секреты (sops, расшифровка на Mac)
+      community.sops.load_vars:
+        file: "{{ secrets_dir }}/{{ item }}.sops.yml"
+        expressions: ignore
+      loop:
+        - common
+        - "{{ inventory_hostname }}"
+      become: false
+      no_log: true
+      tags: always
+
+    - name: Проверить обязательные переменные
+      ansible.builtin.assert:
+        that:
+          - domain | length > 0
+          - ssh_port | int > 0
+          - target_arch in ['amd64', 'arm64']
+          - app_path | length > 0
+          - ws_path | length > 0
+          - llm_path | length > 0
+          - vless_users | length > 0
+          - cliproxyapi_api_keys | length > 0
+          - cliproxyapi_management_key_hash | length > 0
+        quiet: true
+      tags: always
+
+  roles:
+    - { role: base, tags: [base] }
+    # firewall до ssh_hardening: новый порт SSH должен быть открыт до смены порта sshd
+    - { role: firewall, tags: [firewall] }
+    - { role: ssh_hardening, tags: [ssh_hardening] }
+    - { role: caddy, tags: [caddy] }
+    - { role: xray, tags: [xray] }
+    - { role: cliproxyapi, tags: [cliproxyapi] }
+    - { role: omp_relay, tags: [omp_relay] }

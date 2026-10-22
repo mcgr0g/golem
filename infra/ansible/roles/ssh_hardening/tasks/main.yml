@@ -1,0 +1,31 @@
+---
+- name: Ключи пользователя (если заданы)
+  ansible.posix.authorized_key:
+    user: "{{ ssh_user }}"
+    key: "{{ item }}"
+  loop: "{{ ssh_authorized_keys }}"
+
+- name: Конфигурация sshd
+  ansible.builtin.template:
+    src: 10-golem.conf.j2
+    dest: /etc/ssh/sshd_config.d/10-golem.conf
+    mode: "0644"
+    owner: root
+    group: root
+  register: ssh_hardening_conf
+
+- name: Убрать переходную конфигурацию bootstrap (порт 22)
+  ansible.builtin.file:
+    path: /etc/ssh/sshd_config.d/00-bootstrap.conf
+    state: absent
+  register: ssh_hardening_bootstrap
+
+- name: Проверить конфигурацию sshd целиком
+  ansible.builtin.command: sshd -t
+  changed_when: false
+
+- name: Перезапустить sshd при изменениях
+  ansible.builtin.systemd:
+    name: ssh
+    state: restarted
+  when: ssh_hardening_conf is changed or ssh_hardening_bootstrap is changed

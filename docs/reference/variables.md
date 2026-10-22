@@ -13,13 +13,18 @@
 | `vless_users` | host (sops) | список `{id,email}` | клиенты Xray |
 | `cliproxyapi_api_keys` | host (sops) | список | Bearer-ключи |
 | `cliproxyapi_proxy_url` | host | `""` | выход через static ISP прокси |
-| `xray_chain_enabled` | host | `false` | серверная цепочка |
+| `xray_chain_enabled` | host | `false` (`true` не реализовано, роль падает) | серверная цепочка |
 | `ram_alert_kb` | env | `51200` | порог алерта |
 | `fail2ban_ignoreip` | env | список | белый список |
 | `versions.*` | all | caddy/xray/cliproxyapi/omp | пины версий |
 | `cliproxyapi_management_key_hash` | host (sops) | bcrypt | `management.secret-key` |
 | `cpa_panel_version`, `cpa_panel_sha256` | all | v1.26.6 / sha256 | пиннинг `management.html` |
-| `RL_WS`, `RL_LLM`, `RL_STATIC` | env | событий/мин | лимиты Caddy |
+| `caddy_rl_ws`, `caddy_rl_llm`, `caddy_rl_static` | env | 30 / 120 / 120 (оценка) | лимиты Caddy, событий/мин на IP |
+| `caddy_acme_ca` | env | `""` | URL каталога ACME (staging); пусто = боевой |
+| `ssh_user` | env | `ronnie` | пользователь Ansible и `AllowUsers` |
+| `xray_version`, `xray_assets`, `cliproxyapi_version`, `cliproxyapi_assets` | all | `group_vars/all/versions.yml` | пины версий и sha256 по `target_arch` |
+| `duckdns_token` | common (sops) | — | DNS-01 и обновление DNS |
+| `GOLEM_SSH_HOST`, `GOLEM_SSH_PORT`, `GOLEM_DOMAIN`, `GOLEM_DUCKDNS_SUBDOMAIN` | окружение (`mise.local.toml`) | — | `ansible_host`, `ssh_port`, `domain`, `duckdns_subdomain` прод-хоста |
 | `gatus_enabled` | host | `false` | роль мониторинга |
 | `telegram_bot_token`, `telegram_chat_id` | env (sops) | — | алерты Gatus и ram-alert |
 | `ssh_authorized_keys` | env (локальный файл, .gitignore) | список pub-ключей | доступ `ronnie` |

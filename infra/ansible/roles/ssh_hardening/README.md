@@ -1,3 +1,3 @@
 # Роль ssh_hardening
 
-Скелет. Описание: docs/components/ и docs/operations/ansible-layout.md. Реализация — следующий раунд.
+Drop-in `10-golem.conf`, ключи пользователя, снятие переходного порта. `docs/components/security-baseline.md`.

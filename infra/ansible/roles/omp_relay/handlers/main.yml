@@ -1,0 +1,5 @@
+---
+- name: Перезапустить omp-relay
+  ansible.builtin.systemd:
+    name: omp-relay
+    state: restarted

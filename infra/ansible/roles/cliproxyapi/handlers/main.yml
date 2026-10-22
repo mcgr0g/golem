@@ -1,0 +1,5 @@
+---
+- name: Перезапустить cliproxyapi
+  ansible.builtin.systemd:
+    name: cliproxyapi
+    state: restarted

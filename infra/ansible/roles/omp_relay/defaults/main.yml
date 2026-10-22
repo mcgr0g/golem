@@ -1,0 +1,3 @@
+---
+omp_relay_port: 7466
+omp_relay_web_root: /var/www/omp-web   # должен совпадать с caddy_web_root

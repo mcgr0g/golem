@@ -1,0 +1,9 @@
+extends: default
+rules:
+  line-length: {max: 200}
+  truthy: {check-keys: false}
+  document-start: disable
+  braces: {min-spaces-inside: 0, max-spaces-inside: 1}
+ignore: |
+  inventories/prod/group_vars/all/ssh_keys.yml
+  secrets/

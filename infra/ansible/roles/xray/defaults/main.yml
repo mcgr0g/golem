@@ -1,0 +1,3 @@
+---
+xray_port: 10000
+xray_chain_enabled: false   # серверная цепочка к static ISP прокси: не реализована (клиентская цепочка — architecture/04-traffic-flows.md)

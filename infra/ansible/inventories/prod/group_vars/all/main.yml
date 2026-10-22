@@ -1,0 +1,7 @@
+ssh_port: "{{ lookup('ansible.builtin.env', 'GOLEM_SSH_PORT', default=Undefined) | int }}"
+target_arch: amd64
+domain: "{{ lookup('ansible.builtin.env', 'GOLEM_DOMAIN', default=Undefined) }}"
+duckdns_subdomain: "{{ lookup('ansible.builtin.env', 'GOLEM_DUCKDNS_SUBDOMAIN', default=Undefined) }}"
+tls_mode: acme
+# ssh_authorized_keys — в ssh_keys.yml (вне git), пример: ssh_keys.yml.example
+ssh_user: ronnie

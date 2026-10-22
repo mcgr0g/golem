@@ -1,3 +1,3 @@
 # Роль firewall
 
-Скелет. Описание: docs/components/ и docs/operations/ansible-layout.md. Реализация — следующий раунд.
+UFW: deny incoming, SSH-порт и 443, IPv6. `docs/components/security-baseline.md`.

@@ -1,0 +1,112 @@
+---
+- name: Серверная цепочка не реализована
+  ansible.builtin.assert:
+    that: not xray_chain_enabled
+    fail_msg: "xray_chain_enabled пока не поддерживается ролью"
+    quiet: true
+
+- name: Группа xray
+  ansible.builtin.group:
+    name: xray
+    system: true
+
+- name: Пользователь xray
+  ansible.builtin.user:
+    name: xray
+    group: xray
+    system: true
+    create_home: false
+    shell: /usr/sbin/nologin
+
+- name: Каталоги
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: directory
+    owner: root
+    group: "{{ item.group }}"
+    mode: "{{ item.mode }}"
+  loop:
+    - { path: /opt/xray, group: root, mode: "0755" }
+    - { path: "/opt/xray/{{ xray_version }}", group: root, mode: "0755" }
+    - { path: /etc/xray, group: xray, mode: "0750" }
+
+- name: Скачать релиз (sha256 из versions.yml)
+  ansible.builtin.get_url:
+    url: "https://github.com/XTLS/Xray-core/releases/download/{{ xray_version }}/{{ xray_assets[target_arch].name }}"
+    dest: "/var/tmp/{{ xray_assets[target_arch].name }}"
+    checksum: "sha256:{{ xray_assets[target_arch].sha256 }}"
+    mode: "0644"
+    timeout: 60
+  register: xray_download
+  until: xray_download is succeeded
+  retries: 3
+  delay: 5
+
+- name: Распаковать
+  ansible.builtin.unarchive:
+    src: "/var/tmp/{{ xray_assets[target_arch].name }}"
+    dest: "/opt/xray/{{ xray_version }}"
+    remote_src: true
+    creates: "/opt/xray/{{ xray_version }}/xray"
+
+- name: Текущая версия
+  ansible.builtin.file:
+    src: "/opt/xray/{{ xray_version }}"
+    dest: /opt/xray/current
+    state: link
+  notify: Перезапустить xray
+
+- name: Конфиг
+  ansible.builtin.template:
+    src: config.json.j2
+    dest: /etc/xray/config.json
+    owner: root
+    group: xray
+    mode: "0640"
+    validate: /opt/xray/current/xray run -test -config %s
+  vars:
+    xray_config:
+      log:
+        loglevel: warning
+      inbounds:
+        - listen: 127.0.0.1
+          port: "{{ xray_port }}"
+          protocol: vless
+          settings:
+            decryption: none
+            clients: "{{ vless_users }}"
+          streamSettings:
+            network: ws
+            security: none
+            wsSettings:
+              path: "/{{ ws_path }}"
+      outbounds:
+        - protocol: freedom
+          tag: direct
+          settings:
+            domainStrategy: UseIPv4
+        - protocol: blackhole
+          tag: block
+      routing:
+        rules:
+          - type: field
+            ip: ["geoip:private"]
+            outboundTag: block
+  no_log: true
+  notify: Перезапустить xray
+
+- name: Юнит
+  ansible.builtin.template:
+    src: xray.service.j2
+    dest: /etc/systemd/system/xray.service
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Перезапустить xray
+
+- name: Запуск xray
+  ansible.builtin.systemd:
+    name: xray
+    enabled: true
+    state: started
+    daemon_reload: true

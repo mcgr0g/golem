@@ -1,6 +1,18 @@
 # Задачи проекта. Параметры хоста — в mise.local.toml (вне git), пример: mise.local.toml.example
 # Документация: docs/operations/tunnel.md
 
+[env]
+# sops на macOS по умолчанию ищет ключ в ~/Library/Application Support
+SOPS_AGE_KEY_FILE = "{{env.HOME}}/.config/sops/age/keys.txt"
+
+# Версии закреплены (python и uv нужны бэкенду pipx для Ansible и линтеров)
+[tools]
+python = "3.12.7"
+uv = "0.11.7"
+"pipx:ansible-core" = "2.21.5"
+"pipx:ansible-lint" = "26.10.1"
+"pipx:yamllint" = "1.38.0"
+
 [tasks."tunnel:up"]
 description = "Поднять SSH-туннель к локальным интерфейсам VPS (панель CPA и др.)"
 run = '''
@@ -64,3 +76,23 @@ run = "scripts/secrets.sh rotate"
 [tasks."build:artifacts"]
 description = "Собрать caddy/web/relay в build/: build:artifacts [caddy|web|relay|all]; TARGET_ARCH=amd64|arm64"
 run = "scripts/build-artifacts.sh"
+
+[tasks."ansible:lint"]
+description = "yamllint + ansible-lint + syntax-check (lima)"
+dir = "infra/ansible"
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+yamllint .
+ansible-lint
+ansible-playbook -i inventories/lima/hosts.yml playbooks/site.yml --syntax-check
+'''
+
+[tasks."ansible:site"]
+description = "Прогон site.yml: ansible:site <lima|prod> [аргументы ansible-playbook, например --tags caddy --check --diff]"
+dir = "infra/ansible"
+run = 'ansible-playbook -i inventories/${usage_env}/hosts.yml playbooks/site.yml ${usage_args:-}'
+usage = '''
+arg "<env>" help="lima или prod"
+arg "[args]..." var=#true help="аргументы ansible-playbook"
+'''

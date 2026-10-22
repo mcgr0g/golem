@@ -1,3 +1,3 @@
 # Роль base
 
-Скелет. Описание: docs/components/ и docs/operations/ansible-layout.md. Реализация — следующий раунд.
+Пакеты, swap-файл 512 MB, swappiness, journald, автообновления security. `docs/architecture/03-deployment.md`.

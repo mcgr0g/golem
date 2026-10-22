@@ -9,16 +9,18 @@ infra/ansible/
   inventories/
     lima/{hosts.yml,group_vars/,host_vars/}
     prod/{hosts.yml,group_vars/,host_vars/<host>.yml}
-  group_vars/all/{versions.yml,main.yml}
-  playbooks/{bootstrap.yml,site.yml,rotate-secrets.yml}
+  group_vars/all/versions.yml # пины версий; подключается через vars_files (каталог не рядом с плейбуками)
+  secrets/                    # sops-файлы (в .gitignore)
+  playbooks/{bootstrap.yml,site.yml}
+  .yamllint  .ansible-lint
   roles/
     base  ssh_hardening  firewall  fail2ban
     caddy  xray  cliproxyapi  omp_relay
     ops_timers  client_artifacts
 ```
 
-- `bootstrap.yml`: `raw` — установка python3, пользователь `ronnie`, ключ, затем смена порта SSH.
-- `site.yml`: все роли в порядке: base → ssh_hardening → firewall → caddy → xray → cliproxyapi → omp_relay → fail2ban → ops_timers → client_artifacts.
+- `bootstrap.yml` (под root, порт 22): `raw` — python3, пользователь `ronnie`, ключи, sudo; sshd на время перехода слушает 22 и `ssh_port` (`00-bootstrap.conf`), роль `ssh_hardening` оставляет только `ssh_port`. Для Lima не нужен (`ssh_port: 22`, порт пробрасывает сама Lima).
+- `site.yml`: все роли в порядке: base → firewall → ssh_hardening → caddy → xray → cliproxyapi → omp_relay (реализовано) → fail2ban → ops_timers → client_artifacts (не реализовано). Firewall раньше ssh_hardening: новый порт открывается до смены порта sshd.
 - Новый VPS: добавить запись в `inventories/prod/hosts.yml`, создать `host_vars/<host>.yml` (минимум `domain`, `duckdns_subdomain`), запустить `bootstrap.yml`, `site.yml`. Секреты (UUID, пути, ключи) генерируются при первом запуске и сохраняются в sops-файл хоста (`infra/ansible/secrets/<host>.sops.yml`) (`operations/secrets.md`).
 - Идемпотентность: повторный `site.yml` не даёт изменений (`changed=0`) — критерий приёмки роли.
-- Теги по ролям (`--tags caddy`). Переменные — `reference/variables.md`.
+- Теги по ролям (`--tags caddy`). Ротация секретов: `mise run secrets:rotate ...`, затем `mise run ansible:site prod --tags caddy,xray,cliproxyapi`. Запуск: `mise run ansible:site <lima|prod> [args]`, проверки: `mise run ansible:lint`. Параметры прод-хоста — из окружения (`mise.local.toml`: `GOLEM_SSH_HOST/PORT`, `GOLEM_DOMAIN`, `GOLEM_DUCKDNS_SUBDOMAIN`). Артефакты из `build/` сверяются с `manifest.json` до копирования. Переменные — `reference/variables.md`.

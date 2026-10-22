@@ -1,3 +1,3 @@
 # Роль caddy
 
-Скелет. Описание: docs/components/ и docs/operations/ansible-layout.md. Реализация — следующий раунд.
+Бинарник из `build/` (сверка sha256), Caddyfile, юнит, лендинг. `docs/components/caddy.md`.
