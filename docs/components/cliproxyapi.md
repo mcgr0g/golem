@@ -1,0 +1,25 @@
+# cliproxyapi
+
+Читать, когда: настраиваешь прокси LLM-API, ключи, апстримы, вход в аккаунты.
+
+- Роль: `cliproxyapi`. Репозиторий `router-for-me/CLIProxyAPI`, проверенная версия v8.0.35. Версия пинится в `versions.yml`.
+- Релиз: `CLIProxyAPI_<ver>_linux_<arch>.tar.gz`, `<ver>` без `v`, `<arch>` = `amd64` | `aarch64`. Хэши в `checksums.txt` релиза (`sha256  имя`), роль сверяет. Архив плоский, бинарь называется `cli-proxy-api`. Обычная сборка (glibc 2.17+) подходит для Debian 12, `no-plugin` не нужна.
+- Конфиг v8 (`config-version: 8`): `server.host: 127.0.0.1`, `server.port: 8317`, `access.api-keys: [<ключ>]` (Bearer, sops), `management.secret-key: <bcrypt-хэш>` (панель включена только для туннеля, см. ниже), `oauth.auth-dir: /var/lib/cliproxyapi/auth`, `requests.proxy-url` — пусто или static ISP прокси.
+- Каталог `auth` создавать заранее с правами 0700 (приложение само создаёт его с 0755). Файлы токенов приложение пишет с 0600.
+- Новые auth-файлы подхватываются без рестарта; класть атомарно (`mv` из того же ФС), иначе возможна гонка с `permission denied`.
+- RAM: RSS в покое ~51 MB (cgroup ~22 MB), `MemoryMax=128M` достаточно; под нагрузкой не измерялось.
+- При старте ходит наружу (каталоги моделей, версии antigravity/npm) с IP VPS или через `proxy-url` — учитывать в политике IP.
+- Systemd: пользователь `cliproxyapi`, `StateDirectory=cliproxyapi`, `StateDirectoryMode=0700`, `MemoryMax=128M`. Образец юнита — в отчёте проверки (`local/research/q4-q5-cliproxyapi.md`, вне git).
+- Вход в аккаунты без браузера: флаги `-no-browser`, `-oauth-callback-port N`, `-codex-device-login`. Порты по умолчанию: codex 1455, claude 54545, antigravity 51121. Способы: SSH-туннель на callback-порт либо вставить в stdin callback-URL из адресной строки браузера (окно ~15 с).
+- Перенос токенов с Mac технически возможен (самодостаточный JSON, привязки к машине нет), но первый вход пойдёт с IP Mac, а копии токена на Mac и VPS конфликтуют при обновлении refresh-токена. Предпочтительно логиниться на VPS при заданном `requests.proxy-url` на static ISP.
+- Не проверено: реальные логины, приём вставленного URL провайдером, refresh перенесённого токена, RSS под нагрузкой, запуск бинарника amd64 (проверена только aarch64, amd64 — по хэшу).
+
+## Панель управления (Management API) — только через SSH-туннель
+- Включение: непустой `management.secret-key`. Класть готовый bcrypt-хэш (`htpasswd -bnBC 10`): запись хэша обратно в read-only конфиг не удаётся. Cost 10 (~0,07 с на запрос; cost 14 — 0,75 с). Ключ — в `Authorization: Bearer` или `X-Management-Key`. `MANAGEMENT_PASSWORD` не использовать (принудительно включает allow-remote). 5 неверных ключей подряд = бан IP на 30 мин (в памяти).
+- **Безопасность (проверено):** запрос от Caddy приходит с 127.0.0.1 и считается локальным, поэтому `allow-remote: false` НЕ защищает от внешних клиентов. Защита двойная: (1) Caddy пропускает только `/<llm_path>/v1/*` (`components/caddy.md`); (2) `server.trusted-proxies: ["127.0.0.1"]` — внешние клиенты через Caddy получают 403, а туннель работает. Без (2) внешний перебор ключей банит и владельца.
+- Статика панели — один `management.html` (Cli-Proxy-API-Management-Center, релиз v1.26.6, sha256 `46aedbbc265ea1df5542c55565c3a475b2214d178a424515260c44e5de1e2e63`). По умолчанию качается с GitHub при старте и раз в 3 часа. Пиннинг: роль кладёт файл (проверка sha256, до первого старта, 0644, атомарно) в `/var/lib/cliproxyapi/static/`, `management.disable-auto-update-panel: true`, drop-in `Environment=MANAGEMENT_STATIC_PATH=/var/lib/cliproxyapi/static` (без него каталог конфига read-only и панель отвечает 404).
+- Доступ: `mise run cpa:panel` (`operations/tunnel.md`), `http://127.0.0.1:8317/management.html`, ввод ключа в форме.
+- Лимиты: `/v0/management/auth-files` — по аккаунту `cooldowns`, `status`, `success`/`failed`; `/v0/management/api-key-usage` — счётчики по ключам (`failed` включает 429); квоты OAuth-аккаунтов панель сама запрашивает у провайдеров с VPS. Статистика: `observability.usage.usage-statistics-enabled: true` (по умолчанию false), хранится только в памяти и обнуляется при рестарте. Очередь `/v8/management/observability/usage/queue` читается деструктивно — внешний потребитель крадёт записи у панели, не использовать.
+- Встроенных алертов и вебхуков нет. Для мониторинга: `/healthz` без ключа; `auth-files` с ключом через jsonpath (Gatus). Read-only ключа нет: любой ключ даёт полный доступ, включая токены.
+- RSS с панелью и статистикой 56–64 MB; `MemoryMax=128M` достаточно.
+- Не проверено: реальные OAuth-аккаунты (cooldown, usage), работа панели в браузере (проверены HTTP-ответы), поведение при выключенной статистике, amd64.

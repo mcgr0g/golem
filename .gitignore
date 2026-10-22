@@ -1,0 +1,24 @@
+
+.local
+local
+.env
+.omp/
+
+# Сборка
+build/
+out/
+bin/
+*.iml
+.vscode/
+# Скрэтч OMP
+.agent-tmp/
+# macOS
+.DS_Store
+
+# Секреты и сгенерированные клиентские конфиги
+infra/ansible/secrets/
+clients/generated/
+*.retry
+
+mise.local.toml
+infra/ansible/inventories/*/group_vars/all/ssh_keys.yml

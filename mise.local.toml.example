@@ -1,0 +1,7 @@
+# Скопировать в mise.local.toml (в .gitignore). Значения не коммитить.
+[env]
+GOLEM_SSH_HOST = "<domain или IP VPS>"
+GOLEM_SSH_PORT = "<ssh_port>"
+GOLEM_SSH_USER = "ronnie"
+# локальный_порт:удалённый_хост:удалённый_порт, через пробел
+GOLEM_TUNNEL_FORWARDS = "8317:127.0.0.1:8317"
