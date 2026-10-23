@@ -8,6 +8,7 @@ infra/ansible/
   requirements.yml            # коллекции (ansible.posix, community.general)
   inventories/
     lima/{hosts.yml,group_vars/,host_vars/}
+    stage/{hosts.yml,group_vars/}   # реальный x86_64 VPS для обкатки: хост golem-dev, staging CA
     prod/{hosts.yml,group_vars/,host_vars/<host>.yml}
   group_vars/all/versions.yml # пины версий; подключается через vars_files (каталог не рядом с плейбуками)
   secrets/                    # sops-файлы (в .gitignore)
@@ -24,3 +25,4 @@ infra/ansible/
 - Новый VPS: добавить запись в `inventories/prod/hosts.yml`, создать `host_vars/<host>.yml` (минимум `domain`, `duckdns_subdomain`), запустить `bootstrap.yml`, `site.yml`. Секреты (UUID, пути, ключи) генерируются при первом запуске и сохраняются в sops-файл хоста (`infra/ansible/secrets/<host>.sops.yml`) (`operations/secrets.md`).
 - Идемпотентность: повторный `site.yml` не даёт изменений (`changed=0`) — критерий приёмки роли.
 - Теги по ролям (`--tags caddy`). Ротация секретов: `mise run secrets:rotate ...`, затем `mise run ansible:site prod --tags caddy,xray,cliproxyapi`. Запуск: `mise run ansible:site <lima|prod> [args]`, проверки: `mise run ansible:lint`. Параметры прод-хоста — из окружения (`mise.local.toml`: `GOLEM_SSH_HOST/PORT`, `GOLEM_DOMAIN`, `GOLEM_DUCKDNS_SUBDOMAIN`). Артефакты из `build/` сверяются с `manifest.json` до копирования. Переменные — `reference/variables.md`.
+- Первый вход на свежий VPS (у провайдера обычно root с паролем; `sshpass` не нужен): один раз вручную `ssh-copy-id -o PubkeyAuthentication=no root@<ip>` (спросит пароль; ключ берётся из агента, Secretive) — затем `mise run ansible:bootstrap <stage|prod>` идёт по ключу, `mise run ansible:site <stage|prod>` — под `ronnie` на `ssh_port`. Стенд `stage` использует `tls_mode: acme` со staging CA (`caddy_acme_ca`), для боевого сертификата значение очистить.
