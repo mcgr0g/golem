@@ -30,7 +30,9 @@
     owner: root
     group: root
     mode: "0755"
-  notify: Перезапустить gatus
+  notify:
+    - Перезапустить gatus
+    - Уведомить об установке gatus
 
 - name: Конфиг (секреты подставляются из окружения)
   ansible.builtin.template:

@@ -14,5 +14,5 @@ tcp() { (exec 3<>"/dev/tcp/127.0.0.1/$1"); }
 check "xray tcp {{ xray_port }}" tcp {{ xray_port }}
 check "omp-relay tcp {{ omp_relay_port }}" tcp {{ omp_relay_port }}
 check "cliproxyapi /healthz" curl --fail --silent --show-error --max-time 10 --output /dev/null http://127.0.0.1:{{ cliproxyapi_port }}/healthz
-check "caddy https /" curl --fail --silent --show-error --max-time 10 --output /dev/null{% if tls_mode == 'internal' %} --insecure{% endif %} --resolve {{ domain }}:443:127.0.0.1 https://{{ domain }}/
+check "caddy https /" curl --fail --silent --show-error --max-time 10 --output /dev/null{% if tls_mode == 'internal' or caddy_acme_ca | default('') | length > 0 %} --insecure{% endif %} --resolve {{ domain }}:443:127.0.0.1 https://{{ domain }}/
 exit "$fail"

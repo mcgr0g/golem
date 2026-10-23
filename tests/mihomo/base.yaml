@@ -1,0 +1,7 @@
+# Базовая часть конфига; proxies: добавляет render.sh из clients/generated/<host>/mihomo-node.yaml
+mixed-port: 7890
+allow-lan: true
+bind-address: "*"
+mode: rule
+log-level: info
+ipv6: false

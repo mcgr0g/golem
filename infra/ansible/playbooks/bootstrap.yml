@@ -9,10 +9,10 @@
   vars:
     bootstrap_user: "{{ ssh_user }}"
   pre_tasks:
-    - name: Python для модулей Ansible
-      ansible.builtin.raw: test -x /usr/bin/python3 || (apt-get update && apt-get install -y python3 sudo)
+    - name: Python и sudo (в минимальных образах может не быть любого из них)
+      ansible.builtin.raw: test -x /usr/bin/python3 -a -x /usr/bin/sudo || (apt-get update && apt-get install -y python3 sudo)
       register: bootstrap_python
-      changed_when: "'Setting up python3' in bootstrap_python.stdout"
+      changed_when: "'Setting up' in bootstrap_python.stdout"
   tasks:
     - name: Собрать факты
       ansible.builtin.setup:

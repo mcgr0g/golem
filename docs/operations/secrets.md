@@ -10,7 +10,7 @@
 | OAuth-файлы cliproxyapi | sops (файлы) | вход на VPS (`components/cliproxyapi.md`); доставка атомарно, 0600, каталог 0700 |
 | Ключ management CPA | sops-файл хоста | 48 символов; в конфиг — bcrypt-хэш, открытый ключ у владельца |
 | DuckDNS токен | sops общий | из аккаунта DuckDNS |
-| Telegram токен/чат | sops общий | опционально |
+| Telegram токен/чат | sops общий | опционально, см. `telegram.md` |
 | SSH-ключ | Mac (`~/.ssh`) | `ssh-keygen -t ed25519` |
 
 Решение: `decisions/0010-secrets-sops-age.md`. Правила: у каждого VPS свои UUID/пути/ключ (общий компрометирует все). Приватный age-ключ — только у владельца (`~/.config/sops/age/keys.txt`), бэкап в менеджере паролей. Ротация: `secrets:rotate`, затем `ansible:site prod --tags caddy,xray,cliproxyapi`, затем перегенерация `clients/generated/`. Файлы на VPS: 0600, владелец — пользователь сервиса.

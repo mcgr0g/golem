@@ -17,7 +17,7 @@ alerting:
       send-on-resolved: true
 {% endif %}
 endpoints:
-  - name: cliproxyapi
+  - name: "{{ inventory_hostname }} cliproxyapi"
     url: http://127.0.0.1:{{ cliproxyapi_port }}/healthz
     interval: {{ gatus_interval }}
     conditions:
@@ -26,7 +26,7 @@ endpoints:
     alerts:
       - type: telegram
 {% endif %}
-  - name: xray
+  - name: "{{ inventory_hostname }} xray"
     url: tcp://127.0.0.1:{{ xray_port }}
     interval: {{ gatus_interval }}
     conditions:
@@ -35,7 +35,7 @@ endpoints:
     alerts:
       - type: telegram
 {% endif %}
-  - name: omp-relay
+  - name: "{{ inventory_hostname }} omp-relay"
     url: tcp://127.0.0.1:{{ omp_relay_port }}
     interval: {{ gatus_interval }}
     conditions:
@@ -46,9 +46,14 @@ endpoints:
 {% endif %}
 {% if tls_mode != 'internal' %}
   # Домен тестового стенда (internal TLS) с самой VM не резолвится; на нём проверку Caddy делает health-check.sh
-  - name: caddy
+  - name: "{{ inventory_hostname }} caddy"
     url: https://{{ domain }}/
     interval: {{ gatus_interval }}
+{% if caddy_acme_ca | default('') | length > 0 %}
+    # сертификат staging CA не доверенный
+    client:
+      insecure: true
+{% endif %}
     conditions:
       - "[STATUS] == 200"
       - "[CERTIFICATE_EXPIRATION] > {{ gatus_cert_min }}"

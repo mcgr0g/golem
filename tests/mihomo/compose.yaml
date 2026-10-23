@@ -1,0 +1,11 @@
+# Изолированный mihomo для проверки туннеля, не мешает clash-verge-rev на хосте.
+# Конфиг рендерится render.sh из clients/generated/<host>/ (вне git).
+services:
+  mihomo:
+    image: metacubex/mihomo:v1.19.33
+    container_name: golem-mihomo-test
+    restart: "no"
+    ports:
+      - "127.0.0.1:${MIHOMO_TEST_PORT:-17890}:7890"
+    volumes:
+      - ./config.yaml:/root/.config/mihomo/config.yaml:ro

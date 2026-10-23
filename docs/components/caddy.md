@@ -15,7 +15,7 @@
 - Логи: JSON, ротация встроена (`roll_size`, `roll_keep`); fail2ban читает их.
 - Systemd: пользователь `caddy`, `AmbientCapabilities=CAP_NET_BIND_SERVICE`, `MemoryMax=96M` — RSS в покое ~50 MB (измерено), под нагрузкой не мерили: возможно потребуется 128M.
 - DNS-01 DuckDNS проверен на staging CA для `golem-dev.duckdns.org` (Caddy на Mac, выпуск ~20 с, плагин меняет только TXT). Плагин при сетевой ошибке пишет токен в текст ошибки (URL с `token=`): лог Caddy закрыт (0640, `caddy:adm`), токен считать скомпрометированным при утечке лога.
-- Не проверено: боевой CA (первая попытка упала на TLS handshake timeout к www.duckdns.org до создания челленджа), сам TLS-ALPN-01 (нужен публичный хост), запуск сборки amd64.
+- TLS-ALPN-01 на боевом Let's Encrypt проверен на стенде stage (`golem-dev`, x86_64, `tls_mode: acme`, `caddy_acme_ca: ""`): сертификат (издатель Let's Encrypt, срок 90 дней) выпущен с первой попытки, проверки шли в том числе по IPv6. Автопродление не наблюдалось — Не проверено (см. `open-questions.md`, Q13). DNS-01 на боевом CA не проверялся (первая попытка упала на TLS handshake timeout к www.duckdns.org до создания челленджа).
 
 Проверенный Caddyfile — образец; рабочая версия — шаблон `roles/caddy/templates/Caddyfile.j2` (Jinja вместо `{$ENV}`, `redir` уже добавлен). Конфиг проверяется `caddy adapt` до записи (`validate` через `caddy validate` создал бы лог-файл от root). Проверено в Lima: 401/200 для /v1/*, 404 для management и `..`, 308 на `/<app_path>`, WS 101 для Xray и relay, заголовка `Server` нет; RSS ~17 MB cgroup в покое. Редирект `/<app_path>` → `/<app_path>/` добавить (`redir`).
 

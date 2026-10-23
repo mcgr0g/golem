@@ -4,3 +4,22 @@
     name: gatus
     state: restarted
     daemon_reload: true
+
+# Без ignore_errors: если Telegram недоступен, прогон падает, и это видно сразу. Только несекретные параметры хоста.
+- name: Уведомить об установке gatus
+  ansible.builtin.uri:
+    url: "https://api.telegram.org/bot{{ telegram_bot_token }}/sendMessage"
+    method: POST
+    body_format: form-urlencoded
+    body:
+      chat_id: "{{ telegram_chat_id }}"
+      text: |
+        golem {{ inventory_hostname }}: gatus установлен/обновлён
+        ОС: {{ ansible_facts['distribution'] }} {{ ansible_facts['distribution_version'] }}, {{ ansible_facts['architecture'] }}
+        CPU: {{ ansible_facts['processor_vcpus'] }}, RAM: {{ ansible_facts['memtotal_mb'] }} МБ
+        TLS: {{ tls_mode }}{{ ', staging CA' if caddy_acme_ca | default('') | length > 0 else '' }}
+        Мониторинг: {{ gatus_interval }}, порог сертификата {{ gatus_cert_min }}
+  no_log: true
+  when:
+    - telegram_bot_token | default('') | length > 0
+    - telegram_chat_id | default('') | length > 0

@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 # {{ ansible_managed }}
 # Токен передаётся curl через stdin (не виден в списке процессов). Ответ DuckDNS должен быть OK.
+# A-запись: пустой ip= (DuckDNS берёт адрес запроса, поэтому --ipv4). AAAA: глобальный IPv6 хоста, если он есть.
 set -euo pipefail
-res="$(printf 'url = "https://www.duckdns.org/update?domains=%s&token=%s&ip="\n' "$DUCK_DOMAIN" "$DUCK_TOKEN" |
-  curl --fail --silent --show-error --max-time 20 --config -)"
+ipv6="$(ip -6 -o addr show scope global | awk '!seen {sub(/\/.*/, "", $4); print $4; seen=1}')"
+res="$(printf 'url = "https://www.duckdns.org/update?domains=%s&token=%s&ip=&ipv6=%s"\n' "$DUCK_DOMAIN" "$DUCK_TOKEN" "$ipv6" |
+  curl --ipv4 --fail --silent --show-error --max-time 20 --config -)"
 if [ "$res" != "OK" ]; then
   echo "DuckDNS вернул '$res' вместо OK" >&2
   exit 1
 fi
-echo "DuckDNS: IP обновлён"
+echo "DuckDNS: обновлено (IPv4, IPv6=${ipv6:-нет})"

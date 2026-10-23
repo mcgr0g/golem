@@ -27,6 +27,14 @@
     port: "{{ ssh_port | string }}"
     proto: tcp
 
+- name: Закрыть прежний порт SSH 22 (после смены порта правило остаётся от bootstrap)
+  community.general.ufw:
+    rule: allow
+    port: "22"
+    proto: tcp
+    delete: true
+  when: ssh_port | int != 22
+
 - name: Публичные порты
   community.general.ufw:
     rule: allow

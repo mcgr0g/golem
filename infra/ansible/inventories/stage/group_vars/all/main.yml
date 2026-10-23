@@ -5,7 +5,7 @@ target_arch: amd64
 domain: "{{ lookup('ansible.builtin.env', 'GOLEM_DOMAIN', default=Undefined) }}"
 duckdns_subdomain: "{{ lookup('ansible.builtin.env', 'GOLEM_DUCKDNS_SUBDOMAIN', default=Undefined) }}"
 tls_mode: acme   # как на проде (TLS-ALPN-01)
-# Сначала staging Let's Encrypt (лимиты боевого CA); для боевого — пустая строка
-caddy_acme_ca: https://acme-staging-v02.api.letsencrypt.org/directory
+# Боевой Let's Encrypt (пусто). Для отладки выпуска — staging: https://acme-staging-v02.api.letsencrypt.org/directory
+caddy_acme_ca: ""
 gatus_enabled: true
 # ssh_authorized_keys — в ssh_keys.yml (вне git), пример: ssh_keys.yml.example

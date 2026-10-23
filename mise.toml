@@ -91,7 +91,13 @@ ansible-playbook -i inventories/lima/hosts.yml playbooks/site.yml --syntax-check
 [tasks."ansible:site"]
 description = "Прогон site.yml: ansible:site <lima|stage|prod> [аргументы ansible-playbook, например --tags caddy --check --diff]"
 dir = "infra/ansible"
-run = 'ansible-playbook -i inventories/${usage_env}/hosts.yml playbooks/site.yml ${usage_args:-}'
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+# usage_args приходит shell-экранированной строкой: eval восстанавливает границы аргументов (-e "a=1 b=2")
+eval "set -- ${usage_args:-}"
+ansible-playbook -i inventories/${usage_env}/hosts.yml playbooks/site.yml "$@"
+'''
 usage = '''
 arg "<env>" help="lima, stage или prod"
 arg "[args]..." var=#true help="аргументы ansible-playbook"
@@ -100,7 +106,12 @@ arg "[args]..." var=#true help="аргументы ansible-playbook"
 [tasks."ansible:bootstrap"]
 description = "Первичная настройка свежего VPS под root:22 (пароль спросит ssh): ansible:bootstrap <stage|prod> [аргументы]"
 dir = "infra/ansible"
-run = 'ansible-playbook -i inventories/${usage_env}/hosts.yml playbooks/bootstrap.yml -e ansible_port=22 -e ansible_user=root ${usage_args:-}'
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+eval "set -- ${usage_args:-}"
+ansible-playbook -i inventories/${usage_env}/hosts.yml playbooks/bootstrap.yml -e ansible_port=22 -e ansible_user=root "$@"
+'''
 usage = '''
 arg "<env>" help="stage или prod"
 arg "[args]..." var=#true help="аргументы ansible-playbook"

@@ -61,6 +61,8 @@
   ansible.posix.synchronize:
     src: "{{ build_dir }}/omp-web/"
     dest: "{{ omp_relay_web_root }}/"
+    # synchronize читает ansible_port без шаблонизации (в инвентори он строка-шаблон) — передаём явно
+    dest_port: "{{ ansible_port | int }}"
     delete: true
     checksum: true
     owner: false

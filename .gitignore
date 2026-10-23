@@ -25,3 +25,6 @@ infra/ansible/inventories/*/group_vars/all/ssh_keys.yml
 
 # Служебный каталог ansible-lint
 .ansible/
+
+# Конфиг тестового mihomo (секреты)
+tests/mihomo/config.yaml
