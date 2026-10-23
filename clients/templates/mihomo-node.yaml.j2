@@ -1,0 +1,18 @@
+# {{ ansible_managed }}
+# Фрагмент для clash-verge-rev: вставить в proxies:. Содержит секрет (uuid, путь).
+proxies:
+  - name: "golem-{{ inventory_hostname }}"
+    type: vless
+    server: {{ domain }}
+    port: 443
+    uuid: {{ vless_users[0].id }}
+    network: ws
+    tls: true
+    udp: false
+    servername: {{ domain }}
+    alpn: [http/1.1]
+    client-fingerprint: chrome
+    ws-opts:
+      path: /{{ ws_path }}
+      headers: { Host: {{ domain }} }
+    ip-version: ipv4

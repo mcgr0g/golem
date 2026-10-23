@@ -1,0 +1,11 @@
+# {{ ansible_managed }}
+[Unit]
+Description=Таймер {{ item }}
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec={{ ops_timers_interval }}
+AccuracySec=30s
+
+[Install]
+WantedBy=timers.target

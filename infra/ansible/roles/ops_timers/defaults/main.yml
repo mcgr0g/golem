@@ -1,0 +1,9 @@
+---
+ops_timers_duckdns_enabled: "{{ duckdns_token | default('') | length > 0 and duckdns_subdomain | default('') | length > 0 }}"
+ops_timers_health_check_enabled: true
+ops_timers_interval: 5min
+ops_timers_scripts_dir: /usr/local/lib/golem
+ops_timers_enabled: >-
+  {{ ['ram-alert']
+     + (['duckdns-update'] if ops_timers_duckdns_enabled | bool else [])
+     + (['health-check'] if ops_timers_health_check_enabled | bool else []) }}

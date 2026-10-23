@@ -1,0 +1,33 @@
+# {{ ansible_managed }}
+[DEFAULT]
+banaction = ufw
+banaction_allports = ufw
+ignoreip = 127.0.0.1/8 ::1{% for ip in fail2ban_ignoreip %} {{ ip }}{% endfor %}
+
+[sshd]
+enabled = true
+port = {{ ssh_port }}
+backend = systemd
+maxretry = {{ fail2ban_sshd_maxretry }}
+findtime = {{ fail2ban_sshd_findtime }}
+bantime = {{ fail2ban_sshd_bantime }}
+
+[caddy-ratelimit]
+enabled = true
+port = 443
+filter = caddy-ratelimit
+logpath = {{ fail2ban_caddy_log }}
+backend = auto
+maxretry = {{ fail2ban_ratelimit_maxretry }}
+findtime = {{ fail2ban_ratelimit_findtime }}
+bantime = {{ fail2ban_ratelimit_bantime }}
+
+[caddy-auth]
+enabled = true
+port = 443
+filter = caddy-auth
+logpath = {{ fail2ban_caddy_log }}
+backend = auto
+maxretry = {{ fail2ban_auth_maxretry }}
+findtime = {{ fail2ban_auth_findtime }}
+bantime = {{ fail2ban_auth_bantime }}

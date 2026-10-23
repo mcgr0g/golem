@@ -7,3 +7,5 @@ tls_mode: internal
 # Ключ в Lima кладёт сам шаблон (loadDotSSHPubKeys); пустой список = authorized_keys не трогаем.
 ssh_authorized_keys: []
 ssh_user: ronnie
+# Опциональный мониторинг проверяем на стенде (ADR 0011)
+gatus_enabled: true

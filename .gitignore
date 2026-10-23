@@ -22,3 +22,6 @@ clients/generated/
 
 mise.local.toml
 infra/ansible/inventories/*/group_vars/all/ssh_keys.yml
+
+# Служебный каталог ansible-lint
+.ansible/

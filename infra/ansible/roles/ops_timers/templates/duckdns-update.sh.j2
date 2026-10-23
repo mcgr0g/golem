@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# {{ ansible_managed }}
+# Токен передаётся curl через stdin (не виден в списке процессов). Ответ DuckDNS должен быть OK.
+set -euo pipefail
+res="$(printf 'url = "https://www.duckdns.org/update?domains=%s&token=%s&ip="\n' "$DUCK_DOMAIN" "$DUCK_TOKEN" |
+  curl --fail --silent --show-error --max-time 20 --config -)"
+if [ "$res" != "OK" ]; then
+  echo "DuckDNS вернул '$res' вместо OK" >&2
+  exit 1
+fi
+echo "DuckDNS: IP обновлён"

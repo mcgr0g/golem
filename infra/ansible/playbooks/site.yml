@@ -45,3 +45,7 @@
     - { role: xray, tags: [xray] }
     - { role: cliproxyapi, tags: [cliproxyapi] }
     - { role: omp_relay, tags: [omp_relay] }
+    - { role: fail2ban, tags: [fail2ban] }
+    - { role: ops_timers, tags: [ops_timers] }
+    - { role: gatus, tags: [gatus], when: gatus_enabled | default(false) | bool }
+    - { role: client_artifacts, tags: [client_artifacts] }

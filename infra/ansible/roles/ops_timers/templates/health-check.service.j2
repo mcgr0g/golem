@@ -1,0 +1,12 @@
+# {{ ansible_managed }}
+[Unit]
+Description=Локальные пробы служб
+
+[Service]
+Type=oneshot
+ExecStart={{ ops_timers_scripts_dir }}/health-check.sh
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+DynamicUser=true

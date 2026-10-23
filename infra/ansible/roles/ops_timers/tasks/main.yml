@@ -1,0 +1,67 @@
+---
+- name: Каталоги
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  loop: ["{{ ops_timers_scripts_dir }}", /etc/golem]
+
+- name: Скрипты
+  ansible.builtin.template:
+    src: "{{ item }}.sh.j2"
+    dest: "{{ ops_timers_scripts_dir }}/{{ item }}.sh"
+    owner: root
+    group: root
+    mode: "0755"
+  loop: [duckdns-update, ram-alert, health-check]
+
+- name: Файл окружения DuckDNS (токен)
+  ansible.builtin.template:
+    src: duckdns.env.j2
+    dest: /etc/golem/duckdns.env
+    owner: root
+    group: root
+    mode: "0600"
+  no_log: true
+  when: ops_timers_duckdns_enabled | bool
+
+- name: Файл окружения Telegram (токен)
+  ansible.builtin.template:
+    src: telegram.env.j2
+    dest: /etc/golem/telegram.env
+    owner: root
+    group: root
+    mode: "0600"
+  no_log: true
+
+- name: Службы
+  ansible.builtin.template:
+    src: "{{ item }}.service.j2"
+    dest: "/etc/systemd/system/{{ item }}.service"
+    owner: root
+    group: root
+    mode: "0644"
+  loop: "{{ ops_timers_enabled }}"
+  notify: Перечитать systemd
+
+- name: Таймеры
+  ansible.builtin.template:
+    src: ops.timer.j2
+    dest: "/etc/systemd/system/{{ item }}.timer"
+    owner: root
+    group: root
+    mode: "0644"
+  loop: "{{ ops_timers_enabled }}"
+  notify: Перечитать systemd
+
+- name: Применить юниты
+  ansible.builtin.meta: flush_handlers
+
+- name: Запуск таймеров
+  ansible.builtin.systemd:
+    name: "{{ item }}.timer"
+    enabled: true
+    state: started
+  loop: "{{ ops_timers_enabled }}"

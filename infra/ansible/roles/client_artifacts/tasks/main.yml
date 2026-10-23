@@ -1,0 +1,19 @@
+---
+# Рендер на Mac: файлы содержат секреты и в git не попадают (clients/generated/ в .gitignore)
+- name: Каталог клиентских конфигов
+  ansible.builtin.file:
+    path: "{{ client_artifacts_out_dir }}"
+    state: directory
+    mode: "0700"
+  delegate_to: localhost
+  become: false
+
+- name: Клиентские конфиги
+  ansible.builtin.template:
+    src: "{{ client_artifacts_templates_dir }}/{{ item }}.j2"
+    dest: "{{ client_artifacts_out_dir }}/{{ item }}"
+    mode: "0600"
+  loop: [mihomo-node.yaml, vless-link.txt, omp-env.txt]
+  delegate_to: localhost
+  become: false
+  no_log: true

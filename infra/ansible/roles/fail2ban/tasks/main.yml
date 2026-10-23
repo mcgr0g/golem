@@ -1,0 +1,31 @@
+---
+- name: Пакеты fail2ban (python3-systemd для backend systemd)
+  ansible.builtin.apt:
+    name: [fail2ban, python3-systemd]
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Фильтры Caddy
+  ansible.builtin.template:
+    src: "filter-{{ item }}.conf.j2"
+    dest: "/etc/fail2ban/filter.d/{{ item }}.conf"
+    owner: root
+    group: root
+    mode: "0644"
+  loop: [caddy-ratelimit, caddy-auth]
+  notify: Перезапустить fail2ban
+
+- name: Джейлы
+  ansible.builtin.template:
+    src: jail.local.j2
+    dest: /etc/fail2ban/jail.local
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Перезапустить fail2ban
+
+- name: Запуск fail2ban
+  ansible.builtin.systemd:
+    name: fail2ban
+    enabled: true
+    state: started

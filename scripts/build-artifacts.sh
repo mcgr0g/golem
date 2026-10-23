@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Сборка артефактов на Mac (на VPS не собираем, AGENTS.md). Документация: docs/operations/build-artifacts.md
-# Использование: scripts/build-artifacts.sh [caddy|web|relay|all ...]   (по умолчанию all)
-# Переменные: TARGET_ARCH=amd64|arm64 (amd64), CADDY_VERSION, XCADDY_VERSION, OMP_TAG, OMP_SRC, BUN_RETRIES.
+# Использование: scripts/build-artifacts.sh [caddy|web|relay|gatus|all ...]   (по умолчанию all)
+# Переменные: TARGET_ARCH=amd64|arm64 (amd64), CADDY_VERSION, XCADDY_VERSION, GATUS_VERSION, OMP_TAG, OMP_SRC, BUN_RETRIES.
 set -euo pipefail
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -9,6 +9,7 @@ build="$root/build"
 arch="${TARGET_ARCH:-amd64}"
 caddy_version="${CADDY_VERSION:-v2.11.7}"
 xcaddy_version="${XCADDY_VERSION:-latest}"
+gatus_version="${GATUS_VERSION:-v5.37.0}"
 bun_retries="${BUN_RETRIES:-3}"
 omp_repo="https://github.com/can1357/oh-my-pi"
 
@@ -101,6 +102,20 @@ build_relay() {
     "$(sha "$out")" >"$build/.meta/relay-$arch.json"
 }
 
+# Готовых бинарников Gatus в релизах нет (ADR 0011): собираем из тега. go install при кросс-сборке не подходит.
+build_gatus() {
+  need go; need git
+  local src="$build/src/gatus" out="$build/$arch/gatus" cur
+  echo "== gatus $gatus_version linux/$arch"
+  if [ ! -d "$src/.git" ]; then
+    git clone --depth 1 --branch "$gatus_version" https://github.com/TwiN/gatus "$src"
+  fi
+  cur="$(git -C "$src" describe --tags --exact-match 2>/dev/null)" || die "$src не на теге (ожидался $gatus_version)"
+  [ "$cur" = "$gatus_version" ] || die "$src на теге $cur, ожидался $gatus_version (удалите каталог)"
+  (cd "$src" && GOOS=linux GOARCH="$arch" CGO_ENABLED=0 go build -ldflags "-s -w" -o "$out" .)
+  printf '{"version":"%s","sha256":"%s"}\n' "$gatus_version" "$(sha "$out")" >"$build/.meta/gatus-$arch.json"
+}
+
 write_manifest() {
   need python3
   python3 -I - "$build" <<'PY'
@@ -122,8 +137,9 @@ for t in "${targets[@]}"; do
     caddy) build_caddy ;;
     web) build_web ;;
     relay) build_relay ;;
-    all) build_caddy; build_web; build_relay ;;
-    *) die "неизвестная цель '$t' (caddy|web|relay|all)" ;;
+    gatus) build_gatus ;;
+    all) build_caddy; build_web; build_relay; build_gatus ;;
+    *) die "неизвестная цель '$t' (caddy|web|relay|gatus|all)" ;;
   esac
 done
 write_manifest

@@ -44,7 +44,7 @@ C4Context
 
 | Путь | Назначение | Статус |
 | :--- | :--- | :--- |
-| `infra/ansible/` | инвентори, роли, плейбуки | роли base, firewall, ssh_hardening, caddy, xray, cliproxyapi, omp_relay проверены на Lima; fail2ban, ops_timers, client_artifacts, gatus — скелет |
+| `infra/ansible/` | инвентори, роли, плейбуки | все 11 ролей (base, firewall, ssh_hardening, caddy, xray, cliproxyapi, omp_relay, fail2ban, ops_timers, gatus, client_artifacts) проверены на Lima; bootstrap и prod не запускались |
 | `infra/lima/` | шаблоны Lima для тестов | шаблон `vps-test.yaml` (не проверен) |
 | `build/` | артефакты сборки на Mac (в .gitignore) | заполняется `build:artifacts` |
 | `scripts/` | `secrets.sh` (секреты), `build-artifacts.sh` (сборка) | готово |

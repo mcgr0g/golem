@@ -1,0 +1,59 @@
+# {{ ansible_managed }}
+{% set telegram = telegram_bot_token | default("") | length > 0 and telegram_chat_id | default("") | length > 0 %}
+web:
+  address: 127.0.0.1
+  port: {{ gatus_port }}
+storage:
+  type: sqlite
+  path: /var/lib/gatus/data.db
+{% if telegram %}
+alerting:
+  telegram:
+    token: ${TELEGRAM_BOT_TOKEN}
+    id: ${TELEGRAM_CHAT_ID}
+    default-alert:
+      failure-threshold: 3
+      success-threshold: 2
+      send-on-resolved: true
+{% endif %}
+endpoints:
+  - name: cliproxyapi
+    url: http://127.0.0.1:{{ cliproxyapi_port }}/healthz
+    interval: {{ gatus_interval }}
+    conditions:
+      - "[STATUS] == 200"
+{% if telegram %}
+    alerts:
+      - type: telegram
+{% endif %}
+  - name: xray
+    url: tcp://127.0.0.1:{{ xray_port }}
+    interval: {{ gatus_interval }}
+    conditions:
+      - "[CONNECTED] == true"
+{% if telegram %}
+    alerts:
+      - type: telegram
+{% endif %}
+  - name: omp-relay
+    url: tcp://127.0.0.1:{{ omp_relay_port }}
+    interval: {{ gatus_interval }}
+    conditions:
+      - "[CONNECTED] == true"
+{% if telegram %}
+    alerts:
+      - type: telegram
+{% endif %}
+{% if tls_mode != 'internal' %}
+  # Домен тестового стенда (internal TLS) с самой VM не резолвится; на нём проверку Caddy делает health-check.sh
+  - name: caddy
+    url: https://{{ domain }}/
+    interval: {{ gatus_interval }}
+    conditions:
+      - "[STATUS] == 200"
+      - "[CERTIFICATE_EXPIRATION] > {{ gatus_cert_min }}"
+{% if telegram %}
+    alerts:
+      - type: telegram
+{% endif %}
+{% endif %}

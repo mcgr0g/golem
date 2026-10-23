@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# {{ ansible_managed }}
+# Локальные пробы: Xray, relay (TCP), CPA (/healthz) и ответ Caddy на /. Любая неудача = юнит failed.
+set -euo pipefail
+fail=0
+check() { # описание, команда...
+  local what="$1"; shift
+  if ! "$@"; then
+    echo "НЕ ОК: $what" >&2
+    fail=1
+  fi
+}
+tcp() { (exec 3<>"/dev/tcp/127.0.0.1/$1"); }
+check "xray tcp {{ xray_port }}" tcp {{ xray_port }}
+check "omp-relay tcp {{ omp_relay_port }}" tcp {{ omp_relay_port }}
+check "cliproxyapi /healthz" curl --fail --silent --show-error --max-time 10 --output /dev/null http://127.0.0.1:{{ cliproxyapi_port }}/healthz
+check "caddy https /" curl --fail --silent --show-error --max-time 10 --output /dev/null{% if tls_mode == 'internal' %} --insecure{% endif %} --resolve {{ domain }}:443:127.0.0.1 https://{{ domain }}/
+exit "$fail"

@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# {{ ansible_managed }}
+# MemAvailable ниже порога RAM_ALERT_KB: запись в журнал (stderr) и, если задан токен, сообщение в Telegram.
+# Повторное сообщение не шлётся, пока память не восстановится (флаг в RuntimeDirectory).
+set -euo pipefail
+flag="$RUNTIME_DIRECTORY/active"
+avail="$(awk '$1=="MemAvailable:"{print $2}' /proc/meminfo)"
+if [ "$avail" -ge "$RAM_ALERT_KB" ]; then
+  rm -f "$flag"
+  exit 0
+fi
+msg="golem {{ inventory_hostname }}: MemAvailable ${avail} kB < ${RAM_ALERT_KB} kB"
+echo "$msg" >&2
+[ ! -e "$flag" ] || exit 0
+if [ -n "${TELEGRAM_BOT_TOKEN:-}" ] && [ -n "${TELEGRAM_CHAT_ID:-}" ]; then
+  printf 'url = "https://api.telegram.org/bot%s/sendMessage"\n' "$TELEGRAM_BOT_TOKEN" |
+    curl --fail --silent --show-error --max-time 20 --config - \
+      --data-urlencode "chat_id=$TELEGRAM_CHAT_ID" --data-urlencode "text=$msg" --output /dev/null
+fi
+touch "$flag"

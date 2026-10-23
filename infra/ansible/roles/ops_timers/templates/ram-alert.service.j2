@@ -1,0 +1,17 @@
+# {{ ansible_managed }}
+[Unit]
+Description=Алерт по свободной памяти
+
+[Service]
+Type=oneshot
+EnvironmentFile=/etc/golem/telegram.env
+Environment=RAM_ALERT_KB={{ ram_alert_kb | default(51200) }}
+# флаг «алерт уже отправлен» живёт между запусками, чтобы не слать повтор каждые 5 минут
+RuntimeDirectory=golem-ram-alert
+RuntimeDirectoryPreserve=yes
+ExecStart={{ ops_timers_scripts_dir }}/ram-alert.sh
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+DynamicUser=true

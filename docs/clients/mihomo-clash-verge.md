@@ -4,7 +4,7 @@
 
 Схема vless+ws+tls с `alpn: http/1.1` проверена на практике (omp collab через mihomo).
 
-Шаблон узла (плейсхолдеры подставляет Ansible из `clients/templates/mihomo-node.yaml.j2`):
+Шаблон узла (плейсхолдеры подставляет роль `client_artifacts` из `clients/templates/mihomo-node.yaml.j2`):
 
 ```yaml
 proxies:

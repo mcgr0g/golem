@@ -1,0 +1,3 @@
+---
+client_artifacts_templates_dir: "{{ playbook_dir }}/../../../clients/templates"
+client_artifacts_out_dir: "{{ playbook_dir }}/../../../clients/generated/{{ inventory_hostname }}"

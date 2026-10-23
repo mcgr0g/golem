@@ -14,8 +14,12 @@
 | `cliproxyapi_api_keys` | host (sops) | список | Bearer-ключи |
 | `cliproxyapi_proxy_url` | host | `""` | выход через static ISP прокси |
 | `xray_chain_enabled` | host | `false` (`true` не реализовано, роль падает) | серверная цепочка |
-| `ram_alert_kb` | env | `51200` | порог алерта |
-| `fail2ban_ignoreip` | env | список | белый список |
+| `ram_alert_kb` | env | `51200` (по умолчанию в юните) | порог алерта |
+| `fail2ban_ignoreip` | env | `[]` | белый список |
+| `fail2ban_{sshd,ratelimit,auth}_{maxretry,findtime,bantime}`, `fail2ban_caddy_log` | роль | 3/10m/72h, 20/10m/24h, 15/10m/24h | параметры джейлов |
+| `ops_timers_interval`, `ops_timers_duckdns_enabled`, `ops_timers_health_check_enabled`, `ops_timers_scripts_dir` | роль | `5min`, по токену и поддомену, `true`, `/usr/local/lib/golem` | таймеры эксплуатации |
+| `gatus_port`, `gatus_interval`, `gatus_cert_min` | роль | 3002, `60s`, `168h` | Gatus |
+| `client_artifacts_out_dir`, `client_artifacts_templates_dir` | роль | `clients/generated/<host>`, `clients/templates` | выход и шаблоны клиентских конфигов |
 | `versions.*` | all | caddy/xray/cliproxyapi/omp | пины версий |
 | `cliproxyapi_management_key_hash` | host (sops) | bcrypt | `management.secret-key` |
 | `cpa_panel_version`, `cpa_panel_sha256` | all | v1.26.6 / sha256 | пиннинг `management.html` |
@@ -25,7 +29,7 @@
 | `xray_version`, `xray_assets`, `cliproxyapi_version`, `cliproxyapi_assets` | all | `group_vars/all/versions.yml` | пины версий и sha256 по `target_arch` |
 | `duckdns_token` | common (sops) | — | DNS-01 и обновление DNS |
 | `GOLEM_SSH_HOST`, `GOLEM_SSH_PORT`, `GOLEM_DOMAIN`, `GOLEM_DUCKDNS_SUBDOMAIN` | окружение (`mise.local.toml`) | — | `ansible_host`, `ssh_port`, `domain`, `duckdns_subdomain` прод-хоста |
-| `gatus_enabled` | host | `false` | роль мониторинга |
+| `gatus_enabled` | host | `false` (в Lima `true`) | роль мониторинга |
 | `telegram_bot_token`, `telegram_chat_id` | env (sops) | — | алерты Gatus и ram-alert |
 | `ssh_authorized_keys` | env (локальный файл, .gitignore) | список pub-ключей | доступ `ronnie` |
 | `duckdns_subdomain` | host | prod: `golem01`; тест: `golem-dev` | домены `golem01.duckdns.org`, `golem-dev.duckdns.org` |

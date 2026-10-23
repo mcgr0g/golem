@@ -1,0 +1,9 @@
+# {{ ansible_managed }}
+# Настройки omp для этого VPS. Содержит секрет (путь и ключ LLM).
+collab.relayUrl = wss://{{ domain }}
+collab.webUrl = https://{{ domain }}/{{ app_path }}/
+# Домен VPS мимо туннеля mihomo (architecture/04-traffic-flows.md)
+NO_PROXY={{ domain }}
+# LLM через cliproxyapi
+base_url = https://{{ domain }}/{{ llm_path }}/v1
+api_key = {{ cliproxyapi_api_keys[0] }}

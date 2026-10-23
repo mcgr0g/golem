@@ -1,0 +1,22 @@
+# {{ ansible_managed }}
+[Unit]
+Description=Gatus
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+DynamicUser=true
+StateDirectory=gatus
+EnvironmentFile=/etc/gatus/env
+Environment=GATUS_CONFIG_PATH=/etc/gatus/config.yaml
+ExecStart=/usr/local/bin/gatus
+Restart=on-failure
+RestartSec=5
+MemoryMax=64M
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

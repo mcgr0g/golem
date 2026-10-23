@@ -1,0 +1,68 @@
+---
+- name: Хэш бинарника на Mac
+  ansible.builtin.stat:
+    path: "{{ build_dir }}/{{ target_arch }}/gatus"
+    checksum_algorithm: sha256
+  register: gatus_local
+  delegate_to: localhost
+  become: false
+
+- name: Бинарник собран и совпадает с манифестом
+  ansible.builtin.assert:
+    that:
+      - gatus_local.stat.exists
+      - gatus_local.stat.checksum == build_manifest.artifacts['gatus-' ~ target_arch].sha256
+    fail_msg: "build/{{ target_arch }}/gatus отсутствует или не совпадает с manifest.json: mise run build:artifacts gatus"
+    quiet: true
+
+- name: Каталог конфигурации
+  ansible.builtin.file:
+    path: /etc/gatus
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Бинарник gatus
+  ansible.builtin.copy:
+    src: "{{ build_dir }}/{{ target_arch }}/gatus"
+    dest: /usr/local/bin/gatus
+    owner: root
+    group: root
+    mode: "0755"
+  notify: Перезапустить gatus
+
+- name: Конфиг (секреты подставляются из окружения)
+  ansible.builtin.template:
+    src: config.yaml.j2
+    dest: /etc/gatus/config.yaml
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Перезапустить gatus
+
+- name: Файл окружения (токен Telegram)
+  ansible.builtin.template:
+    src: env.j2
+    dest: /etc/gatus/env
+    owner: root
+    group: root
+    mode: "0600"
+  no_log: true
+  notify: Перезапустить gatus
+
+- name: Юнит gatus
+  ansible.builtin.template:
+    src: gatus.service.j2
+    dest: /etc/systemd/system/gatus.service
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Перезапустить gatus
+
+- name: Запуск gatus
+  ansible.builtin.systemd:
+    name: gatus
+    enabled: true
+    state: started
+    daemon_reload: true

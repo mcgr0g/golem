@@ -1,0 +1,15 @@
+# {{ ansible_managed }}
+[Unit]
+Description=Обновление DuckDNS
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+EnvironmentFile=/etc/golem/duckdns.env
+ExecStart={{ ops_timers_scripts_dir }}/duckdns-update.sh
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+DynamicUser=true
