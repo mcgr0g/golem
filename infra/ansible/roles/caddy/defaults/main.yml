@@ -3,6 +3,6 @@ caddy_acme_ca: ""   # URL каталога ACME (staging для dns01_duckdns); 
 caddy_web_root: /var/www/omp-web
 caddy_landing_root: /var/www/landing
 # Лимиты событий в минуту на IP; значения — оценка, подбор на проде (Q8)
-caddy_rl_ws: 30
+caddy_rl_ws: 300   # WS-рукопожатий в минуту на IP: браузер через туннель открывает десятки соединений за секунды
 caddy_rl_llm: 120
 caddy_rl_static: 120

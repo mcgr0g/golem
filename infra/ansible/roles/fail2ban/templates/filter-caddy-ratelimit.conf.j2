@@ -1,5 +1,6 @@
 # {{ ansible_managed }}
 # Ответы 429 (rate limit Caddy) из JSON-лога доступа: request.remote_ip идёт раньше status
 [Definition]
-failregex = ^\{.*"remote_ip":"<HOST>".*"status":429,
+# WS-путь Xray исключён: 429 там получает легитимный клиент с параллельными соединениями
+failregex = ^\{.*"remote_ip":"<HOST>".*"uri":"(?!/{{ ws_path }})[^"]*".*"status":429,
 datepattern = "ts":{EPOCH}
