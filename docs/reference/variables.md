@@ -14,6 +14,8 @@
 | `cliproxyapi_api_keys` | host (sops) | список | Bearer-ключи |
 | `cliproxyapi_proxy_url` | host | `""` | выход через static ISP прокси |
 | `xray_chain_enabled` | host | `false` (`true` не реализовано, роль падает) | серверная цепочка |
+| `xray_cpa_route_enabled`, `xray_cpa_domain` | роль | `false` (в `-e` передавать булево JSON-ом: `-e '{"xray_cpa_route_enabled": true}'`), `cpa.golem` | маршрут имени в Xray на loopback cliproxyapi (ADR 0012); добавляет в `cpa-access.txt` туннельный адрес и `management_key` |
+| `cliproxyapi_management_key` | host (sops) | 48 символов | открытый ключ management; попадает в `cpa-access.txt` при включённом маршруте |
 | `ram_alert_kb` | env | `51200` (по умолчанию в юните) | порог алерта |
 | `fail2ban_ignoreip` | env | `[]` | белый список |
 | `fail2ban_{sshd,ratelimit,auth}_{maxretry,findtime,bantime}`, `fail2ban_caddy_log` | роль | 3/10m/72h, 20/10m/24h, 15/10m/24h | параметры джейлов |

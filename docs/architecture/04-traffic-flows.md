@@ -21,6 +21,9 @@ sequenceDiagram
 ## B. LLM-запросы с MacBook/виртуалки
 `omp → https://<domain>/<llm_path>/v1 (Bearer) → Caddy (strip prefix) → cliproxyapi :8317 → LLM-провайдер`. Исходящий запрос cliproxyapi идёт напрямую с IP VPS (`requests.proxy-url` пуст) либо через static ISP прокси, если задан.
 
+### B′. LLM через туннель (ADR 0012)
+`агент → HTTP(S)_PROXY / socks5h mihomo → правило DOMAIN,cpa.golem → VLESS+WS+TLS :443 → Caddy → Xray → freedom (redirect 127.0.0.1:8317) → cliproxyapi`. Включается `xray_cpa_route_enabled`; адрес `http://cpa.golem:8317`, подключение агентов — `clients/ai-agents.md`. Без mihomo имя не резолвится.
+
 ## C. VLESS-прокси для Dolphin Anty и агентов
 ```mermaid
 flowchart LR

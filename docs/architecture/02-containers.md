@@ -31,6 +31,7 @@ C4Container
 | `/r/*` | заголовки `Upgrade: websocket` | omp relay :7466 | rate limit; ключ комнаты в ссылке. Путь фиксирован протоколом |
 | `/<ws_path>` | заголовки `Upgrade: websocket` | Xray :10000 | UUID VLESS, rate limit |
 | `/<llm_path>/*` | — | cliproxyapi :8317, префикс срезается | Bearer `access.api-keys`, rate limit |
+| `cpa.golem:8317` (имя только внутри VLESS) | флаг `xray_cpa_route_enabled`; запрос приходит по `/<ws_path>` | Xray `freedom` → cliproxyapi 127.0.0.1:8317 (ADR 0012) | UUID VLESS, Bearer `access.api-keys`; белого списка Caddy нет |
 | всё остальное | — | лендинг (статическая заглушка, 200) | — |
 
 Правила:
