@@ -65,6 +65,20 @@
     mode: "0640"
     validate: /opt/xray/current/xray run -test -config %s
   vars:
+    xray_outbounds_base:
+      - protocol: freedom
+        tag: direct
+        settings:
+          domainStrategy: UseIPv4
+      - protocol: blackhole
+        tag: block
+    xray_base_rules:
+      - type: field
+        ip: ["geoip:private"]
+        outboundTag: block
+    # Эксперимент (docs/research/llm-access/via-xray.md): имя из xray_cpa_domain ведёт на loopback cliproxyapi; правило выше geoip:private
+    xray_cpa_rules: "{{ [{'type': 'field', 'domain': ['full:' ~ xray_cpa_domain], 'outboundTag': 'cpa'}] if xray_cpa_route_enabled | bool else [] }}"
+    xray_cpa_outbounds: "{{ [{'protocol': 'freedom', 'tag': 'cpa', 'settings': {'redirect': '127.0.0.1:' ~ cliproxyapi_port}}] if xray_cpa_route_enabled | bool else [] }}"
     xray_config:
       log:
         loglevel: warning
@@ -80,18 +94,9 @@
             security: none
             wsSettings:
               path: "/{{ ws_path }}"
-      outbounds:
-        - protocol: freedom
-          tag: direct
-          settings:
-            domainStrategy: UseIPv4
-        - protocol: blackhole
-          tag: block
+      outbounds: "{{ xray_outbounds_base + xray_cpa_outbounds }}"
       routing:
-        rules:
-          - type: field
-            ip: ["geoip:private"]
-            outboundTag: block
+        rules: "{{ xray_cpa_rules + xray_base_rules }}"
   no_log: true
   notify: Перезапустить xray
 
