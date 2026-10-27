@@ -1,0 +1,13 @@
+# {{ ansible_managed }}
+# Доступ к cliproxyapi (LLM) на этом VPS. Содержит секреты (ключи).
+# Вариант 1: напрямую по секретному пути Caddy (без прокси; только /v1/*)
+direct_base_url = https://{{ domain }}/{{ llm_path }}/v1
+api_key = {{ cliproxyapi_api_keys[0] }}
+{% if xray_cpa_route_enabled | default(false) | bool %}
+# Вариант 2: через VLESS-туннель mihomo. Имя {{ xray_cpa_domain }} в DNS не существует, его знает только Xray.
+# Правило mihomo (выше остальных): DOMAIN,{{ xray_cpa_domain }},golem-{{ inventory_hostname }}
+tunnel_base_url = http://{{ xray_cpa_domain }}:{{ cliproxyapi_port }}
+tunnel_base_url_v1 = http://{{ xray_cpa_domain }}:{{ cliproxyapi_port }}/v1
+# Ключ management (панель /management.html и /v0/management/*): только через туннель, не через Caddy
+management_key = {{ cliproxyapi_management_key }}
+{% endif %}
