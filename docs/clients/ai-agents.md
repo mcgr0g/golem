@@ -5,17 +5,18 @@
 Файлы из `clients/generated/<host>/` (роль `client_artifacts`, содержат секреты):
 - `vless-link.txt` / `mihomo-node.yaml` — узел VLESS для mihomo (туннель);
 - `omp-env.txt` — relay и веб-клиент omp, LLM по секретному пути Caddy;
-- `cpa-access.txt` — адреса и ключи cliproxyapi: `direct_base_url`, `api_key`, при включённом `xray_cpa_route_enabled` ещё `tunnel_base_url`, `tunnel_base_url_v1`, `management_key`.
+- `cpa-access.txt` — адреса и ключи cliproxyapi: `direct_base_url`, `api_key`, при включённом `xray_cpa_route_enabled` ещё `local_base_url`, `local_base_url_v1`, `management_key`.
 
 Два способа дойти до LLM:
 - **прямой** — `https://<domain>/<llm_path>/v1` через Caddy, прокси не нужен; наружу только `/v1/*` (`components/caddy.md`);
-- **туннельный** — `http://cpa.golem:8317` через mihomo (правило `DOMAIN,cpa.golem,<узел>` над остальными): имя резолвит только Xray, порт на VPS наружу не открывается (`research/llm-access/via-xray.md`). Агенту нужен прокси-режим mihomo (mixed-порт), TUN не требуется.
+- **локальный порт** — `local_base_url` из `cpa-access.txt` (`http://127.0.0.1:<GOLEM_CPA_LLM_PORT>`, по умолчанию 18317): клиент VLESS пробрасывает порт на VPS (mihomo, секция `tunnels:` из `cpa-access.txt`, проверено; v2rayN — Не проверено). Агенту прокси-настройки не нужны. Порт на VPS наружу не открывается (`research/llm-access/via-xray.md`).
+- **прокси-режим** — `http://cpa.golem:8317` через mihomo (правило `DOMAIN,cpa.golem,<узел>`): имя резолвит только Xray; агенту нужны `HTTP(S)_PROXY`/`PI_PROXY_*`/`pi-proxy-router`.
 
 ## omp
 
 ### Встроенный провайдер (`models.yml`)
-- Транспорт: прямой — `base_url` и `api_key` из `omp-env.txt` (или `direct_base_url` и `api_key` из `cpa-access.txt`); туннельный — `tunnel_base_url_v1` и `api_key` из `cpa-access.txt`, узел и правило из `vless-link.txt` / `mihomo-node.yaml`.
-- Особенности: провайдер OpenAI-совместимый (`api: openai-completions`), в описании модели обязательны `cost.cacheRead` и `cost.cacheWrite`; ключ лучше брать из переменной окружения. Прокси: `PI_PROXY_<ПРОВАЙДЕР>` (только LLM) или `HTTP(S)_PROXY`; `cpa.golem` не добавлять в `NO_PROXY`. Без прокси на туннельный адрес omp бесконечно повторяет DNS-ошибку.
+- Транспорт: прямой — `base_url` и `api_key` из `omp-env.txt` (или `direct_base_url` и `api_key` из `cpa-access.txt`); локальный порт — `local_base_url_v1` и `api_key` из `cpa-access.txt`, узел и правило из `vless-link.txt` / `mihomo-node.yaml`.
+- Особенности: провайдер OpenAI-совместимый (`api: openai-completions`), в описании модели обязательны `cost.cacheRead` и `cost.cacheWrite`; ключ лучше брать из переменной окружения. Прокси нужен только в прокси-режиме: `PI_PROXY_<ПРОВАЙДЕР>` (только LLM) или `HTTP(S)_PROXY`; `cpa.golem` не добавлять в `NO_PROXY`. Без прокси на туннельный адрес omp бесконечно повторяет DNS-ошибку.
 - Запуск неинтерактивно требует `< /dev/null`.
 
 ### Relay и веб-клиент (`collab`)
@@ -24,7 +25,7 @@
 ## pi
 
 ### `pi-cliproxyapi-provider`
-- Транспорт: туннельный — `CLIPROXYAPI_BASE_URL=tunnel_base_url_v1` и `CLIPROXYAPI_API_KEY=api_key` из `cpa-access.txt`. Прямой по секретному пути Caddy — Не проверено.
+- Транспорт: локальный порт — `CLIPROXYAPI_BASE_URL=local_base_url_v1` и `CLIPROXYAPI_API_KEY=api_key` из `cpa-access.txt`. Прямой по секретному пути Caddy — Не проверено.
 - Особенности: `baseUrl` нужен с `/v1` (без него 404); список моделей появляется после `/cliproxyapi refresh models`; чат идёт на `/v1/chat/completions`. Конфиг провайдера — `~/.pi/agent/pi-cliproxyapi-provider/config.json` или переменные `CLIPROXYAPI_*`.
 
 ### `pi-proxy-router`
@@ -37,11 +38,11 @@
 ## ccs
 
 ### API-профиль (`ccs api create`)
-- Транспорт: туннельный — `tunnel_base_url` (без `/v1`) и `api_key` из `cpa-access.txt`: `ccs api create <имя> --preset anthropic --base-url <tunnel_base_url> --api-key <api_key> --model <модель>`; запуск `ccs <имя>` с `HTTP(S)_PROXY`/`ALL_PROXY` на mixed-порт mihomo. Прямой по секретному пути Caddy — нет: ccs не поддерживает префикс пути.
+- Транспорт: локальный порт — `local_base_url` (без `/v1`) и `api_key` из `cpa-access.txt`: `ccs api create <имя> --preset anthropic --base-url <local_base_url> --api-key <api_key> --model <модель>`; запуск `ccs <имя>` (при прокси-режиме с именем `cpa.golem` — с `HTTP(S)_PROXY`/`ALL_PROXY` на mixed-порт mihomo). Прямой по секретному пути Caddy — нет: ccs не поддерживает префикс пути.
 - Особенности: Claude Code получает `ANTHROPIC_BASE_URL` напрямую, на cliproxyapi идёт `POST /v1/messages`. В `NO_PROXY` — только loopback. Предупреждение «auth readiness» (`/v0/management/*` → 401/403) безвредно. Ключ виден в `ps` на время запуска. Версия конфига ccs — 14 (первая строка `version: 14`).
 
 ### Режим `remote` и OAuth-профили (`ccs cliproxy`)
-- Транспорт: туннельный; `management_key` из `cpa-access.txt` нужен для `/v0/management/*`.
+- Транспорт: локальный порт; `management_key` из `cpa-access.txt` нужен для `/v0/management/*`.
 - Особенности: рассчитан на OAuth-провайдеров; с провайдерами `openai-compatibility` не работает (`Authentication failed`). Промежуточные прокси ccs по коду ходят к upstream без `HTTP_PROXY` — Не проверено.
 
 ## Панель и management

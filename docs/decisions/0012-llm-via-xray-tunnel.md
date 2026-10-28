@@ -6,7 +6,7 @@
 Клиенты LLM-агентов не гарантируют работу с секретным context path Caddy (`/<llm_path>/v1`): ccs префикс не поддерживает совсем, `pi-cliproxyapi-provider` ходит и на пути вне белого списка. Альтернатива — внешний порт хостера на cliproxyapi: номер выдают только после заказа VPS, 8317 напрямую (без TLS, rate limit, белого списка) открывать нельзя. Исследование и результаты прогонов: `docs/research/llm-access/`.
 
 ## Решение
-Агент ходит на виртуальное имя `cpa.golem` (в DNS его нет) по HTTP через прокси mihomo; правило `DOMAIN,cpa.golem,<узел VPS>`. На VPS Xray направляет это имя в outbound `freedom` с `redirect 127.0.0.1:8317` (правило выше `geoip:private`). Наружу нужен только 443 (VLESS+WS+TLS), шифрование — TLS Caddy. Аутентификация LLM — Bearer `access.api-keys`. Прямой путь по `llm_path` через Caddy остаётся для клиентов без прокси (omp).
+Агент ходит на виртуальное имя `cpa.golem` (в DNS его нет) по HTTP через прокси mihomo; правило `DOMAIN,cpa.golem,<узел VPS>`. На VPS Xray направляет это имя в outbound `freedom` с `redirect 127.0.0.1:8317` (правило выше `geoip:private`). Наружу нужен только 443 (VLESS+WS+TLS), шифрование — TLS Caddy. Аутентификация LLM — Bearer `access.api-keys`. Агенты видят не `cpa.golem`, а локальный адрес `http://127.0.0.1:<GOLEM_CPA_LLM_PORT>` (по умолчанию 18317, не 8317): клиент VLESS пробрасывает порт на `cpa.golem:8317` через узел VPS (mihomo: секция `tunnels:`, проверено; v2rayN — Не проверено). Прокси-режим с именем `cpa.golem` тоже работает. Прямой путь по `llm_path` через Caddy остаётся для клиентов без прокси (omp).
 
 ## Последствия
 - Порт хостера и второй TLS-listener Caddy не нужны; SSH-туннель для LLM не нужен.

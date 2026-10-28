@@ -14,7 +14,8 @@
 | `cliproxyapi_api_keys` | host (sops) | список | Bearer-ключи |
 | `cliproxyapi_proxy_url` | host | `""` | выход через static ISP прокси |
 | `xray_chain_enabled` | host | `false` (`true` не реализовано, роль падает) | серверная цепочка |
-| `xray_cpa_route_enabled`, `xray_cpa_domain` | роль | `false` (в `-e` передавать булево JSON-ом: `-e '{"xray_cpa_route_enabled": true}'`), `cpa.golem` | маршрут имени в Xray на loopback cliproxyapi (ADR 0012); добавляет в `cpa-access.txt` туннельный адрес и `management_key` |
+| `GOLEM_CPA_LLM_PORT` / `client_artifacts_cpa_local_port` | окружение (`mise.local.toml`) / роль | `18317` | локальный порт на Mac для туннеля к cliproxyapi (в `cpa-access.txt`); не 8317 |
+| `xray_cpa_route_enabled`, `xray_cpa_domain` | роль; `true` в inventories lima и stage | `false` (в `-e` передавать булево JSON-ом: `-e '{"xray_cpa_route_enabled": true}'`), `cpa.golem` | маршрут имени в Xray на loopback cliproxyapi (ADR 0012); добавляет в `cpa-access.txt` туннельный адрес и `management_key` |
 | `cliproxyapi_management_key` | host (sops) | 48 символов | открытый ключ management; попадает в `cpa-access.txt` при включённом маршруте |
 | `ram_alert_kb` | env | `51200` (по умолчанию в юните) | порог алерта |
 | `fail2ban_ignoreip` | env | `[]` | белый список |
