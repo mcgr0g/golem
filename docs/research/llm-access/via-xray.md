@@ -59,3 +59,7 @@
 - Режим `cliproxy_server.remote` (`ccs claude`) и `ccs cliproxy create --provider claude`: OAuth-only; fake-провайдер не подключить, `Authentication failed`/`OAuth start failed 403`. По чтению кода промежуточный `tool-sanitization-proxy` ходит к upstream через `http.request` без `HTTP_PROXY` — в remote-цепочке с `cpa.golem` не сработает (не проверено).
 - Ключ передаётся в argv `ccs` (виден в `ps`).
 Не проверено: `management_key`, тайминги SSE на уровне ccs, remote-OAuth end-to-end.
+
+## Агенты через локальный порт (2026-10-28, Lima + fake-llm, mihomo `tunnels:`; субагент, не перепроверено)
+Порт `127.0.0.1:18317` → `cpa.golem:8317` через узел VPS; прокси-переменные у агентов сняты. pi (`CLIPROXYAPI_BASE_URL=…/v1`, `CLIPROXYAPI_PROVIDER_NAME=cliproxyapi`, `pi-proxy-router` отключён), omp (`models.yml`, baseUrl `…/v1`), ccs (`ccs api create … --base-url http://127.0.0.1:18317`) получили ответ заглушки; обращения подтверждены строками туннеля в логе mihomo. При остановленном mihomo pi сразу даёт `Connection error`, omp повторяет попытки циклами по ~30 с, ccs ждёт (`Still running…`) — быстрого отказа нет, это повторы клиентов, а не зависание на неответившем ресурсе. Побочно ccs печатает «Google Gemini auth readiness: fetch failed» (не связано с маршрутом, есть и в успешном прогоне).
+Stage (боевой LE): `tunnels:` на узел `golem-dev`, `/v1/models` без ключа 401, с ключом 200.

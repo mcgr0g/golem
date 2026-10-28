@@ -17,7 +17,7 @@
 ### Встроенный провайдер (`models.yml`)
 - Транспорт: прямой — `base_url` и `api_key` из `omp-env.txt` (или `direct_base_url` и `api_key` из `cpa-access.txt`); локальный порт — `local_base_url_v1` и `api_key` из `cpa-access.txt`, узел и правило из `vless-link.txt` / `mihomo-node.yaml`.
 - Особенности: провайдер OpenAI-совместимый (`api: openai-completions`), в описании модели обязательны `cost.cacheRead` и `cost.cacheWrite`; ключ лучше брать из переменной окружения. Прокси нужен только в прокси-режиме: `PI_PROXY_<ПРОВАЙДЕР>` (только LLM) или `HTTP(S)_PROXY`; `cpa.golem` не добавлять в `NO_PROXY`. Без прокси на туннельный адрес omp бесконечно повторяет DNS-ошибку.
-- Запуск неинтерактивно требует `< /dev/null`.
+- Запуск неинтерактивно требует `< /dev/null`. Проверено: через локальный порт работает без прокси. Если клиент VLESS остановлен, omp получает `connection refused` и повторяет попытки циклами (~30 с), быстрого завершения нет.
 
 ### Relay и веб-клиент (`collab`)
 - Транспорт: прямой WSS на домен; значения `collab.relayUrl`, `collab.webUrl` и `NO_PROXY` — из `omp-env.txt`. Домен VPS держать в `NO_PROXY`, иначе relay пойдёт через собственный туннель.
@@ -26,7 +26,7 @@
 
 ### `pi-cliproxyapi-provider`
 - Транспорт: локальный порт — `CLIPROXYAPI_BASE_URL=local_base_url_v1` и `CLIPROXYAPI_API_KEY=api_key` из `cpa-access.txt`. Прямой по секретному пути Caddy — Не проверено.
-- Особенности: `baseUrl` нужен с `/v1` (без него 404); список моделей появляется после `/cliproxyapi refresh models`; чат идёт на `/v1/chat/completions`. Конфиг провайдера — `~/.pi/agent/pi-cliproxyapi-provider/config.json` или переменные `CLIPROXYAPI_*`.
+- Особенности: с локальным портом прокси агенту не нужен (проверено); нужен `CLIPROXYAPI_PROVIDER_NAME=cliproxyapi` (по умолчанию провайдер регистрируется как `cpa`), а правило `cliproxyapi/*` в `pi-proxy-router` на время работы через локальный порт отключить, иначе запрос уйдёт в прокси. `baseUrl` нужен с `/v1` (без него 404); список моделей появляется после `/cliproxyapi refresh models`; чат идёт на `/v1/chat/completions`. Конфиг провайдера — `~/.pi/agent/pi-cliproxyapi-provider/config.json` или переменные `CLIPROXYAPI_*`.
 
 ### `pi-proxy-router`
 - Транспорт: прокси mihomo (`socks5h://127.0.0.1:<mixed-порт>`), узел и правило — из `vless-link.txt` / `mihomo-node.yaml`.
@@ -39,7 +39,7 @@
 
 ### API-профиль (`ccs api create`)
 - Транспорт: локальный порт — `local_base_url` (без `/v1`) и `api_key` из `cpa-access.txt`: `ccs api create <имя> --preset anthropic --base-url <local_base_url> --api-key <api_key> --model <модель>`; запуск `ccs <имя>` (при прокси-режиме с именем `cpa.golem` — с `HTTP(S)_PROXY`/`ALL_PROXY` на mixed-порт mihomo). Прямой по секретному пути Caddy — нет: ccs не поддерживает префикс пути.
-- Особенности: Claude Code получает `ANTHROPIC_BASE_URL` напрямую, на cliproxyapi идёт `POST /v1/messages`. В `NO_PROXY` — только loopback. Предупреждение «auth readiness» (`/v0/management/*` → 401/403) безвредно. Ключ виден в `ps` на время запуска. Версия конфига ccs — 14 (первая строка `version: 14`).
+- Особенности: через локальный порт (`--base-url <local_base_url>`, без `/v1`) прокси не нужен (проверено). Если клиент VLESS остановлен, ccs долго ждёт (`Still running…`) вместо быстрого отказа. Claude Code получает `ANTHROPIC_BASE_URL` напрямую, на cliproxyapi идёт `POST /v1/messages`. В `NO_PROXY` — только loopback. Предупреждение «auth readiness» (`/v0/management/*` → 401/403) безвредно. Ключ виден в `ps` на время запуска. Версия конфига ccs — 14 (первая строка `version: 14`).
 
 ### Режим `remote` и OAuth-профили (`ccs cliproxy`)
 - Транспорт: локальный порт; `management_key` из `cpa-access.txt` нужен для `/v0/management/*`.
