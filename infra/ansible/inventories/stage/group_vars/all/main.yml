@@ -9,5 +9,3 @@ tls_mode: acme   # как на проде (TLS-ALPN-01)
 caddy_acme_ca: ""
 gatus_enabled: true
 # ssh_authorized_keys — в ssh_keys.yml (вне git), пример: ssh_keys.yml.example
-# Маршрут cpa.golem в Xray для LLM-агентов через туннель клиента (ADR 0012)
-xray_cpa_route_enabled: true

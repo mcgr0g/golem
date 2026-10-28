@@ -1,5 +1,6 @@
 ---
 xray_port: 10000
 xray_chain_enabled: false   # серверная цепочка к static ISP прокси: не реализована (клиентская цепочка — architecture/04-traffic-flows.md)
-xray_cpa_route_enabled: false   # эксперимент: доступ к cliproxyapi через VLESS (docs/research/llm-access/via-xray.md)
+# Маршрут имени xray_cpa_domain на loopback cliproxyapi (ADR 0012); включается в mise.local.toml: GOLEM_CPA_ROUTE = "true"
+xray_cpa_route_enabled: "{{ lookup('ansible.builtin.env', 'GOLEM_CPA_ROUTE') | default('false', true) | bool }}"
 xray_cpa_domain: cpa.golem

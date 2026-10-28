@@ -76,9 +76,6 @@
       - type: field
         ip: ["geoip:private"]
         outboundTag: block
-    # Эксперимент (docs/research/llm-access/via-xray.md): имя из xray_cpa_domain ведёт на loopback cliproxyapi; правило выше geoip:private
-    xray_cpa_rules: "{{ [{'type': 'field', 'domain': ['full:' ~ xray_cpa_domain], 'outboundTag': 'cpa'}] if xray_cpa_route_enabled | bool else [] }}"
-    xray_cpa_outbounds: "{{ [{'protocol': 'freedom', 'tag': 'cpa', 'settings': {'redirect': '127.0.0.1:' ~ cliproxyapi_port}}] if xray_cpa_route_enabled | bool else [] }}"
     xray_config:
       log:
         loglevel: warning
@@ -94,9 +91,10 @@
             security: none
             wsSettings:
               path: "/{{ ws_path }}"
-      outbounds: "{{ xray_outbounds_base + xray_cpa_outbounds }}"
+      outbounds: "{{ xray_outbounds_base + ([{'protocol': 'freedom', 'tag': 'cpa', 'settings': {'redirect': '127.0.0.1:' ~ cliproxyapi_port}}] if xray_cpa_route_enabled | bool else []) }}"
       routing:
-        rules: "{{ xray_cpa_rules + xray_base_rules }}"
+        # Маршрут к cliproxyapi (ADR 0012) стоит выше geoip:private
+        rules: "{{ ([{'type': 'field', 'domain': ['full:' ~ xray_cpa_domain], 'outboundTag': 'cpa'}] if xray_cpa_route_enabled | bool else []) + xray_base_rules }}"
   no_log: true
   notify: Перезапустить xray
 

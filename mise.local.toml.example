@@ -9,3 +9,5 @@ GOLEM_DUCKDNS_SUBDOMAIN = "<sub>"
 GOLEM_TUNNEL_FORWARDS = "8317:127.0.0.1:8317"
 # локальный порт на Mac, куда клиент VLESS пробрасывает cliproxyapi (необязательно, по умолчанию 18317; не 8317)
 # GOLEM_CPA_LLM_PORT = "18317"
+# маршрут к cliproxyapi через Xray для LLM-агентов (ADR 0012): "true" включает его и туннельную часть cpa-access.txt
+# GOLEM_CPA_ROUTE = "true"
