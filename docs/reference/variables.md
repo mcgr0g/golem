@@ -12,6 +12,7 @@
 | `app_path`, `ws_path`, `llm_path` | host (sops) | случайные | секретные маршруты |
 | `vless_users` | host (sops) | список `{id,email}` | клиенты Xray |
 | `cliproxyapi_api_keys` | host (sops) | список | Bearer-ключи |
+| `cliproxyapi_openai_compatibility` | роль; значение только в inventories lima | `[]` | провайдеры `openai-compatibility` в конфиге cliproxyapi (в Lima — фиктивный апстрим `tests/fake-llm`) |
 | `cliproxyapi_proxy_url` | host | `""` | выход через static ISP прокси |
 | `xray_chain_enabled` | host | `false` (`true` не реализовано, роль падает) | серверная цепочка |
 | `GOLEM_CPA_LLM_PORT` / `client_artifacts_cpa_local_port` | окружение (`mise.local.toml`) / роль | `18317` | локальный порт на Mac для туннеля к cliproxyapi (в `cpa-access.txt`); не 8317 |

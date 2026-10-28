@@ -1,3 +1,5 @@
 ---
 cliproxyapi_proxy_url: ""   # выход через static ISP прокси, например socks5://...; пусто = напрямую
 cliproxyapi_port: 8317
+# Провайдеры openai-compatibility (формат config.example.yaml CLIProxyAPI): список {name, base-url, api-key-entries, models}; по умолчанию нет
+cliproxyapi_openai_compatibility: []

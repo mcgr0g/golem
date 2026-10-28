@@ -19,3 +19,6 @@ oauth:
   auth-dir: "/var/lib/cliproxyapi/auth"
 requests:
   proxy-url: {{ cliproxyapi_proxy_url | to_json }}
+{% if cliproxyapi_openai_compatibility %}
+openai-compatibility: {{ cliproxyapi_openai_compatibility | to_json }}
+{% endif %}

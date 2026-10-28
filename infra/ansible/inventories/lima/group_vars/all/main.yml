@@ -9,3 +9,12 @@ ssh_authorized_keys: []
 ssh_user: ronnie
 # Опциональный мониторинг проверяем на стенде (ADR 0011)
 gatus_enabled: true
+# Фиктивный апстрим для проверки LLM-агентов (tests/fake-llm/lima.sh start); реальных доступов в Lima нет
+cliproxyapi_openai_compatibility:
+  - name: fake-llm
+    base-url: http://127.0.0.1:19999/v1
+    api-key-entries:
+      - api-key: fake-upstream-not-a-secret
+    models:
+      - { name: fake-upstream-a, alias: fake-chat-a }
+      - { name: fake-upstream-b, alias: fake-chat-b }
