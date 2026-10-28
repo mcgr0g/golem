@@ -7,7 +7,8 @@
 | `domain` | host | `<sub>.duckdns.org` | единственный FQDN |
 | `duckdns_subdomain` | host | `golem01` | обновление DNS |
 | `target_arch` | env | `amd64` / `arm64` | выбор артефактов |
-| `ssh_port` | env | число ≠ 22 | порт sshd и UFW |
+| `ssh_port` | env | число; не 22 без DNAT | порт sshd на VPS (внутренний), UFW, джейл fail2ban `sshd` |
+| `ssh_external_port` | env | число | внешний порт SSH: `ansible_port`, туннель; равен `ssh_port`, если нет DNAT |
 | `tls_mode` | env | `acme`/`internal`/`dns01_duckdns` | выпуск сертификата |
 | `app_path`, `ws_path`, `llm_path` | host (sops) | случайные | секретные маршруты |
 | `vless_users` | host (sops) | список `{id,email}` | клиенты Xray |
@@ -32,7 +33,8 @@
 | `ssh_user` | env | `ronnie` | пользователь Ansible и `AllowUsers` |
 | `xray_version`, `xray_assets`, `cliproxyapi_version`, `cliproxyapi_assets` | all | `group_vars/all/versions.yml` | пины версий и sha256 по `target_arch` |
 | `duckdns_token` | common (sops) | — | DNS-01 и обновление DNS |
-| `GOLEM_SSH_HOST`, `GOLEM_SSH_PORT`, `GOLEM_DOMAIN`, `GOLEM_DUCKDNS_SUBDOMAIN` | окружение (`mise.local.toml`) | — | `ansible_host`, `ssh_port`, `domain`, `duckdns_subdomain` прод-хоста |
+| `GOLEM_SSH_HOST`, `GOLEM_SSH_PORT`, `GOLEM_DOMAIN`, `GOLEM_DUCKDNS_SUBDOMAIN` | окружение (`mise.local.toml`) | — | `ansible_host`, `ssh_external_port` (и `ansible_port`), `domain`, `duckdns_subdomain` прод-хоста |
+| `GOLEM_SSH_PORT_INTERNAL` | окружение (`mise.local.toml`), необязательно | пусто → равен `GOLEM_SSH_PORT`; при DNAT `22` | `ssh_port` (порт sshd). Заданный — признак DNAT: `ansible:bootstrap` ходит на внешний порт, а не на 22 |
 | `gatus_enabled` | host | `false` (в Lima `true`) | роль мониторинга |
 | `telegram_bot_token`, `telegram_chat_id` | env (sops) | — | алерты Gatus и ram-alert |
 | `ssh_authorized_keys` | env (локальный файл, .gitignore) | список pub-ключей | доступ `ronnie` |

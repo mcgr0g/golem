@@ -1,4 +1,6 @@
-ssh_port: "{{ lookup('ansible.builtin.env', 'GOLEM_SSH_PORT', default=Undefined) | int }}"
+# внешний порт (куда подключается Mac) и порт sshd на VPS; при DNAT у провайдера они различаются
+ssh_external_port: "{{ lookup('ansible.builtin.env', 'GOLEM_SSH_PORT', default=Undefined) | int }}"
+ssh_port: "{{ lookup('ansible.builtin.env', 'GOLEM_SSH_PORT_INTERNAL', default='') | default(ssh_external_port, true) | int }}"
 target_arch: amd64
 domain: "{{ lookup('ansible.builtin.env', 'GOLEM_DOMAIN', default=Undefined) }}"
 duckdns_subdomain: "{{ lookup('ansible.builtin.env', 'GOLEM_DUCKDNS_SUBDOMAIN', default=Undefined) }}"

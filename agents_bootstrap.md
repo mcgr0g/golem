@@ -36,7 +36,7 @@ C4Context
 | SSH, UFW, fail2ban, секреты (sops+age, инструкция для новичков) | `docs/components/security-baseline.md`, `docs/operations/secrets.md` |
 | Мониторинг (Gatus), RAM-алерт, DuckDNS | `docs/components/ops-timers.md` |
 | Клиенты: clash-verge-rev, v2rayN, Throne, Dolphin Anty | `docs/clients/` |
-| Исследования и эксперименты (доступ клиентов к cliproxyapi) | `docs/research/` |
+| Исследования и эксперименты (доступ клиентов к cliproxyapi, разделение портов SSH) | `docs/research/` |
 | Структура Ansible, переменные | `docs/operations/ansible-layout.md`, `docs/reference/variables.md` |
 | SSH-туннель к локальным UI (панель CPA, мониторинг), mise-задачи | `docs/operations/tunnel.md` |
 | Тест на Lima, смоук-чеклист, сборка артефактов | `docs/operations/testing-lima.md`, `testing-mihomo.md`, `smoke-checklist.md`, `build-artifacts.md` |

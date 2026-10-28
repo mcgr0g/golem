@@ -5,7 +5,7 @@
 Принцип: такие сервисы не выставляются через Caddy (ни на какой путь). На Mac поднимается проброс `-L` (локальный порт → 127.0.0.1:порт на VPS) через ControlMaster-сокет.
 
 ## Настройка
-1. Скопировать `mise.local.toml.example` в `mise.local.toml` (в .gitignore), задать `GOLEM_SSH_HOST`, `GOLEM_SSH_PORT`, `GOLEM_SSH_USER` (по умолчанию `ronnie`), при необходимости `GOLEM_TUNNEL_FORWARDS` (список `лок_порт:127.0.0.1:удал_порт` через пробел).
+1. Скопировать `mise.local.toml.example` в `mise.local.toml` (в .gitignore), задать `GOLEM_SSH_HOST`, `GOLEM_SSH_PORT` (внешний порт SSH; внутренний `GOLEM_SSH_PORT_INTERNAL` туннелю не нужен), `GOLEM_SSH_USER` (по умолчанию `ronnie`), при необходимости `GOLEM_TUNNEL_FORWARDS` (список `лок_порт:127.0.0.1:удал_порт` через пробел).
 2. Команды: `mise run tunnel:up` / `tunnel:status` / `tunnel:down`; `mise run cpa:panel` — туннель и открытие `http://127.0.0.1:8317/management.html`.
 
 ## Правила

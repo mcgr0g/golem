@@ -1,7 +1,10 @@
 # Скопировать в mise.local.toml (в .gitignore). Значения не коммитить.
 [env]
 GOLEM_SSH_HOST = "<domain или IP VPS>"
+# внешний порт SSH (к нему подключается Mac)
 GOLEM_SSH_PORT = "<ssh_port>"
+# порт sshd на VPS, если провайдер пробрасывает внешний порт на другой (DNAT, обычно 22); не задан — равен GOLEM_SSH_PORT
+# GOLEM_SSH_PORT_INTERNAL = "22"
 GOLEM_SSH_USER = "ronnie"
 GOLEM_DOMAIN = "<sub>.duckdns.org"
 GOLEM_DUCKDNS_SUBDOMAIN = "<sub>"

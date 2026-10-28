@@ -1,5 +1,6 @@
 # Lima пробрасывает 22 гостя сама, поэтому порт sshd не меняем.
 ssh_port: 22
+ssh_external_port: 60022
 target_arch: arm64
 domain: golem.test
 duckdns_subdomain: ""

@@ -104,13 +104,18 @@ arg "[args]..." var=#true help="аргументы ansible-playbook"
 '''
 
 [tasks."ansible:bootstrap"]
-description = "Первичная настройка свежего VPS под root:22 (пароль спросит ssh): ansible:bootstrap <stage|prod> [аргументы]"
+description = "Первичная настройка свежего VPS под root (22; при GOLEM_SSH_PORT_INTERNAL — внешний GOLEM_SSH_PORT): ansible:bootstrap <stage|prod> [аргументы]"
 dir = "infra/ansible"
 run = '''
 #!/usr/bin/env bash
 set -euo pipefail
 eval "set -- ${usage_args:-}"
-ansible-playbook -i inventories/${usage_env}/hosts.yml playbooks/bootstrap.yml -e ansible_port=22 -e ansible_user=root "$@"
+# без DNAT свежий VPS слушает 22; с DNAT (задан внутренний порт) он доступен снаружи только на внешнем порту
+bootstrap_port=22
+if [[ -n "${GOLEM_SSH_PORT_INTERNAL:-}" ]]; then
+  bootstrap_port="${GOLEM_SSH_PORT:?задайте GOLEM_SSH_PORT в mise.local.toml}"
+fi
+ansible-playbook -i inventories/${usage_env}/hosts.yml playbooks/bootstrap.yml -e "ansible_port=${bootstrap_port}" -e ansible_user=root "$@"
 '''
 usage = '''
 arg "<env>" help="stage или prod"
