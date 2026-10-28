@@ -4,10 +4,13 @@
 direct_base_url = https://{{ domain }}/{{ llm_path }}/v1
 api_key = {{ cliproxyapi_api_keys[0] }}
 {% if xray_cpa_route_enabled | default(false) | bool %}
-# Вариант 2: через VLESS-туннель mihomo. Имя {{ xray_cpa_domain }} в DNS не существует, его знает только Xray.
-# Правило mihomo (выше остальных): DOMAIN,{{ xray_cpa_domain }},golem-{{ inventory_hostname }}
-tunnel_base_url = http://{{ xray_cpa_domain }}:{{ cliproxyapi_port }}
-tunnel_base_url_v1 = http://{{ xray_cpa_domain }}:{{ cliproxyapi_port }}/v1
+# Вариант 2: локальный порт, который клиент VLESS пробрасывает через VPS на cliproxyapi (ADR 0012)
+local_base_url = http://127.0.0.1:{{ client_artifacts_cpa_local_port }}
+local_base_url_v1 = http://127.0.0.1:{{ client_artifacts_cpa_local_port }}/v1
+# Для mihomo (верхний уровень конфига): tunnels:
+#   - tcp,127.0.0.1:{{ client_artifacts_cpa_local_port }},{{ xray_cpa_domain }}:{{ cliproxyapi_port }},golem-{{ inventory_hostname }}
+# Имя {{ xray_cpa_domain }} в DNS не существует, его знает только Xray на VPS; клиент должен отправлять запрос на VPS с этим назначением.
+# Для клиентов без tunnels (прокси-режим): правило DOMAIN,{{ xray_cpa_domain }},golem-{{ inventory_hostname }} и адрес http://{{ xray_cpa_domain }}:{{ cliproxyapi_port }}
 # Ключ management (панель /management.html и /v0/management/*): только через туннель, не через Caddy
 management_key = {{ cliproxyapi_management_key }}
 {% endif %}

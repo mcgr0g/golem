@@ -7,3 +7,5 @@ GOLEM_DOMAIN = "<sub>.duckdns.org"
 GOLEM_DUCKDNS_SUBDOMAIN = "<sub>"
 # локальный_порт:удалённый_хост:удалённый_порт, через пробел
 GOLEM_TUNNEL_FORWARDS = "8317:127.0.0.1:8317"
+# локальный порт на Mac, куда клиент VLESS пробрасывает cliproxyapi (необязательно, по умолчанию 18317; не 8317)
+# GOLEM_CPA_LLM_PORT = "18317"

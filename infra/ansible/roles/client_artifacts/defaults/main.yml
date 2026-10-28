@@ -1,3 +1,5 @@
 ---
 client_artifacts_templates_dir: "{{ playbook_dir }}/../../../clients/templates"
 client_artifacts_out_dir: "{{ playbook_dir }}/../../../clients/generated/{{ inventory_hostname }}"
+# Локальный порт на Mac для туннеля к cliproxyapi (mihomo tunnels); не 8317: его занимают ccs, проброс Lima и cpa:panel
+client_artifacts_cpa_local_port: "{{ lookup('ansible.builtin.env', 'GOLEM_CPA_LLM_PORT') | default('18317', true) | int }}"

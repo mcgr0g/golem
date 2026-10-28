@@ -9,3 +9,5 @@ ssh_authorized_keys: []
 ssh_user: ronnie
 # Опциональный мониторинг проверяем на стенде (ADR 0011)
 gatus_enabled: true
+# Маршрут cpa.golem в Xray для LLM-агентов через туннель клиента (ADR 0012)
+xray_cpa_route_enabled: true
