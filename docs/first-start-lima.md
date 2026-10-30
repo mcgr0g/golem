@@ -11,6 +11,6 @@
 5. Прогон: `mise run ansible:site lima`; повторный — `changed=0`.
 6. Домен `golem.test`: добавьте в `/etc/hosts` Mac `127.0.0.1 golem.test`; порт 443 Lima пробрасывает на Mac. Сертификат — локальный CA Caddy, клиентам нужен `-k`/`skip-cert-verify`; для `curl` без правки hosts: `--resolve golem.test:443:127.0.0.1`.
 7. Клиентские конфиги: `clients/generated/golem-test/` (`mihomo-node.yaml`, `cpa-access.txt`, …).
-8. Проверки: общий раздел `smoke-checklist.md`. LLM без реального провайдера — `tests/fake-llm/lima.sh start` (см. `testing-lima.md`); трафик через туннель — `testing-mihomo.md`.
+8. Проверки: общий раздел `operations/smoke-checklist.md`. LLM без реального провайдера — `tests/fake-llm/lima.sh start` (см. `operations/testing-lima.md`); трафик через туннель — `operations/testing-mihomo.md`.
 
-Ограничения: Lima проверяет роли, идемпотентность, лимиты systemd и маршруты. Выпуск Let's Encrypt, внешнюю доступность 443, DuckDNS и реальную латентность проверить нельзя — `testing-lima.md`.
+Ограничения: Lima проверяет роли, идемпотентность, лимиты systemd и маршруты. Выпуск Let's Encrypt, внешнюю доступность 443, DuckDNS и реальную латентность проверить нельзя — `operations/testing-lima.md`.

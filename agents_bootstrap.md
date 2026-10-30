@@ -37,7 +37,7 @@ C4Context
 | Мониторинг (Gatus), RAM-алерт, DuckDNS | `docs/components/ops-timers.md` |
 | Клиенты: clash-verge-rev, v2rayN, Throne, Dolphin Anty | `docs/clients/` |
 | Исследования и эксперименты (доступ клиентов к cliproxyapi, разделение портов SSH) | `docs/research/` |
-| Первый запуск стенда (Lima, stage, prod): что задать и в каком порядке | `docs/operations/first-start.md`, `first-start-lima.md`, `first-start-vps.md` |
+| Первый запуск стенда (Lima, stage, prod): что задать и в каком порядке | `docs/first-start.md`, `docs/first-start-lima.md`, `docs/first-start-vps.md` |
 | Структура Ansible, переменные | `docs/operations/ansible-layout.md`, `docs/reference/variables.md` |
 | SSH-туннель к локальным UI (панель CPA, мониторинг), mise-задачи | `docs/operations/tunnel.md` |
 | Тест на Lima, смоук-чеклист, сборка артефактов | `docs/operations/testing-lima.md`, `testing-mihomo.md`, `smoke-checklist.md`, `build-artifacts.md` |

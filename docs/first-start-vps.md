@@ -21,7 +21,7 @@
 2. Публичный ключ SSH: скопируйте `ssh_keys.yml.example` в `ssh_keys.yml` нужного инвентори и впишите публичные ключи (основной — Secretive или обычный ed25519; резервный ed25519 с парольной фразой). Файл в `.gitignore`.
 3. `mise.local.toml` из образца: `GOLEM_SSH_HOST`, `GOLEM_SSH_PORT`, `GOLEM_DOMAIN`, `GOLEM_DUCKDNS_SUBDOMAIN`; при DNAT добавьте `GOLEM_SSH_PORT_INTERNAL` (обычно `22`). Переменные читаются на каждый запуск `mise`, один файл — один активный стенд за раз; при переключении stage ↔ prod меняйте значения.
 4. DuckDNS: создать поддомен и взять токен в аккаунте DuckDNS.
-5. Telegram (необязательно): бот и `chat_id` — `telegram.md`.
+5. Telegram (необязательно): бот и `chat_id` — `operations/telegram.md`.
 6. Секреты: `mise run secrets:init <host>` (`golem-dev` или `golem01`), затем `mise run secrets:edit common` — внести `duckdns_token` и, если нужно, `telegram_bot_token`, `telegram_chat_id`. Бэкап `keys.txt` в менеджер паролей.
 7. Сборка: `TARGET_ARCH=amd64 mise run build:artifacts`.
 8. Проверки без сети: `mise run ansible:lint`; `mise run ansible:site <env> --syntax-check`.
@@ -41,11 +41,11 @@
 
 ### D. Проверка
 
-1. `smoke-checklist.md`: общий раздел; на prod — также «Только прод».
+1. `operations/smoke-checklist.md`: общий раздел; на prod — также «Только прод».
 2. Сертификат: `curl -I https://<домен>/` без `-k` → 200.
 3. DuckDNS: запись A (и AAAA, если у хоста есть глобальный IPv6) совпадает с адресом VPS. За NAT входящий и исходящий адреса могут не совпасть — Не проверено (Q14).
 4. LLM: ключи cliproxyapi — в `cpa-access.txt`; реальные провайдеры вводятся входом OAuth на VPS (`components/cliproxyapi.md`).
-5. Трафик через туннель с Mac: `testing-mihomo.md`.
+5. Трафик через туннель с Mac: `operations/testing-mihomo.md`.
 
 ## Особенности prod
 

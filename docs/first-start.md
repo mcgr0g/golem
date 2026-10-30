@@ -25,7 +25,7 @@
 | 7 | Первый вход на VPS (`ssh-copy-id` под root) и `ansible:bootstrap` | нет | да | да | человек |
 | 8 | `mise run ansible:site <env>` (повторный прогон: `changed=0`) | да | да | да | человек |
 | 9 | Клиентские конфиги из `clients/generated/<host>/` | да | да | да | человек |
-| 10 | Смоук-чеклист (`smoke-checklist.md`) | общее | общее | общее + «только прод» | человек |
+| 10 | Смоук-чеклист (`operations/smoke-checklist.md`) | общее | общее | общее + «только прод» | человек |
 
 Одна сборка — одна архитектура: `build/` содержит последнюю собранную. Перед прогоном на другом стенде пересоберите под его архитектуру, иначе `omp_relay` остановится на проверке `manifest.json`.
 
@@ -33,7 +33,7 @@
 
 - `mise` — ставит Ansible, ansible-lint, yamllint, Python и uv по `mise.toml`: `mise install`.
 - `age`, `sops`, `apache2-utils` (`htpasswd`), `openssl`: `brew install age sops`; `htpasswd` и `openssl` в macOS есть.
-- Сборка артефактов: Go, Bun и Node нужны в `PATH` (в `mise.toml` проекта их нет — на машине владельца они из глобального mise); также `git` и доступ к GitHub. Подробности — `build-artifacts.md`.
+- Сборка артефактов: Go, Bun и Node нужны в `PATH` (в `mise.toml` проекта их нет — на машине владельца они из глобального mise); также `git` и доступ к GitHub. Подробности — `operations/build-artifacts.md`.
 - Для Lima — `limactl`; для проверки трафика (`tests/mihomo`) — Docker Desktop, необязательно.
 
 ## Параметры в `mise.local.toml`
@@ -55,7 +55,7 @@
 
 ## Секреты (кратко)
 
-`secrets:init <host>` создаёт age-ключ (если нет), `.sops.yaml`, `common.sops.yml` и файл хоста со случайными UUID, путями, ключами. Бэкап `~/.config/sops/age/keys.txt` в менеджер паролей — до первого `ansible:site`. Значения вносит владелец сам; в чат и документы они не попадают. Подробности и ротация — `secrets.md`.
+`secrets:init <host>` создаёт age-ключ (если нет), `.sops.yaml`, `common.sops.yml` и файл хоста со случайными UUID, путями, ключами. Бэкап `~/.config/sops/age/keys.txt` в менеджер паролей — до первого `ansible:site`. Значения вносит владелец сам; в чат и документы они не попадают. Подробности и ротация — `operations/secrets.md`.
 
 ## Что делать при сбое
 
