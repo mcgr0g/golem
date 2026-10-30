@@ -2,7 +2,7 @@
 
 Читать, когда: настраиваешь прокси LLM-API, ключи, апстримы, вход в аккаунты.
 
-- Роль: `cliproxyapi`. Репозиторий `router-for-me/CLIProxyAPI`, проверенная версия v8.0.35. Версия пинится в `versions.yml`.
+- Роль: `cliproxyapi`. Репозиторий `router-for-me/CLIProxyAPI`, проверенная версия v8.0.48 (обновлено с 8.0.35; формат конфига v8 прежний). Версия пинится в `versions.yml`.
 - Релиз: `CLIProxyAPI_<ver>_linux_<arch>.tar.gz`, `<ver>` без `v`, `<arch>` = `amd64` | `aarch64`. Хэши в `checksums.txt` релиза (`sha256  имя`), роль сверяет. Архив плоский, бинарь называется `cli-proxy-api`. Обычная сборка (glibc 2.17+) подходит для Debian 12, `no-plugin` не нужна.
 - Конфиг v8 (`config-version: 8`): `server.host: 127.0.0.1`, `server.port: 8317`, `access.api-keys: [<ключ>]` (Bearer, sops), `management.secret-key: <bcrypt-хэш>` (панель включена только для туннеля, см. ниже), `oauth.auth-dir: /var/lib/cliproxyapi/auth`, `requests.proxy-url` — пусто или static ISP прокси.
 - Каталог `auth` создавать заранее с правами 0700 (приложение само создаёт его с 0755). Файлы токенов приложение пишет с 0600.

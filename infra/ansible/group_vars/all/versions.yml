@@ -9,14 +9,14 @@ xray_assets:
     name: Xray-linux-arm64-v8a.zip
     sha256: 4d30283ae614e3057f730f67cd088a42be6fdf91f8639d82cb69e48cde80413c
 
-cliproxyapi_version: "8.0.35"
+cliproxyapi_version: "8.0.48"
 cliproxyapi_assets:
   amd64:
-    name: CLIProxyAPI_8.0.35_linux_amd64.tar.gz
-    sha256: 1d9edde6973e8f15694debcd186b5ab693e0741bd6a4c5e551aa89e0a6b57e38
+    name: CLIProxyAPI_8.0.48_linux_amd64.tar.gz
+    sha256: 095c46e7165842cf563f9665be86cf24a29ba94e57ab9bd67588fe5cc4c7125c
   arm64:
-    name: CLIProxyAPI_8.0.35_linux_aarch64.tar.gz
-    sha256: 570db8fcf5677cbfa2f32b35e117c4df9d91d5966057f7fe4604fd493033dd83
+    name: CLIProxyAPI_8.0.48_linux_aarch64.tar.gz
+    sha256: 9ed7c06aa96d9cc6736ddfc897de07b8b6085731785087f6701f07ec9ec198dd
 
 cpa_panel_version: "v1.26.6"
 cpa_panel_sha256: 46aedbbc265ea1df5542c55565c3a475b2214d178a424515260c44e5de1e2e63
