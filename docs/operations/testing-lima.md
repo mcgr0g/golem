@@ -9,3 +9,4 @@
 - Фиктивный LLM-апстрим (реальных доступов в Lima нет): `tests/fake-llm/lima.sh start|stop|status`, провайдер `fake-llm` включён в `inventories/lima` (`cliproxyapi_openai_compatibility`); `GET /v1/models` отдаёт `fake-chat-a`, `fake-chat-b`, чат со стримом — SSE по частям. Для проверки маршрута агентов через Xray — `GOLEM_CPA_ROUTE=true` (`research/llm-access/`).
 - Что проверяется в Lima: идемпотентность, systemd-юниты и `MemoryMax`, маршрутизация Caddy, WS-пробы, Xray ↔ mihomo на Mac, rate limit/fail2ban, нагрузка на 1 GiB.
 - Что нельзя проверить в Lima (только прод): выпуск Let's Encrypt по ALPN, внешняя доступность 443, DuckDNS обновление, реальная латентность. Эти пункты — в `smoke-checklist.md`, раздел «Прод».
+- Задержка первого токена заглушки: `FAKE_LLM_FIRST_TOKEN_DELAY=40 tests/fake-llm/lima.sh start`; heartbeat cliproxyapi включается `-e '{"cliproxyapi_keepalive_seconds":10,"cliproxyapi_keepalive_before_first_token":true}'` (`components/cliproxyapi.md`).

@@ -4,6 +4,7 @@
 # Эндпоинты: GET /v1/models, POST /v1/chat/completions (stream true/false), POST /v1/responses (stream true/false).
 # Ключи и тела запросов в лог не пишутся.
 import json
+import os
 import sys
 import time
 import uuid
@@ -12,6 +13,8 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 HOST = "127.0.0.1"
 PORT = 19999
 DELAY = 0.3
+# пауза между заголовками SSE и первым событием (имитация долгого рассуждения), секунды; FAKE_LLM_FIRST_TOKEN_DELAY
+FIRST_TOKEN_DELAY = float(os.environ.get("FAKE_LLM_FIRST_TOKEN_DELAY", "0"))
 MODELS = ["fake-upstream-a", "fake-upstream-b"]
 PIECES = ["Hello", ", this", " is", " a", " fake", " streamed", " reply", "."]
 FULL_TEXT = "".join(PIECES)
@@ -117,6 +120,7 @@ class Handler(BaseHTTPRequestHandler):
         events += [chunk({"content": p}) for p in PIECES]
         events += [chunk({}, "stop"), "data: [DONE]\n\n"]
         self._sse_start()
+        time.sleep(FIRST_TOKEN_DELAY)
         for i, ev in enumerate(events):
             if i:
                 time.sleep(DELAY)
@@ -149,6 +153,7 @@ class Handler(BaseHTTPRequestHandler):
         events += [ev("response.completed", {"response": {"id": rid, "object": "response", "model": model,
                                                            "status": "completed"}})]
         self._sse_start()
+        time.sleep(FIRST_TOKEN_DELAY)
         for i, e in enumerate(events):
             if i:
                 time.sleep(DELAY)

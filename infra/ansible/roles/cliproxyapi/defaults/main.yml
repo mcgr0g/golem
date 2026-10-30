@@ -3,3 +3,8 @@ cliproxyapi_proxy_url: ""   # выход через static ISP прокси, н�
 cliproxyapi_port: 8317
 # Провайдеры openai-compatibility (формат config.example.yaml CLIProxyAPI): список {name, base-url, api-key-entries, models}; по умолчанию нет
 cliproxyapi_openai_compatibility: []
+# SSE heartbeat (streaming.keepalive-seconds): 0 = выключен. Нужен, если апстрим долго молчит до первого токена
+# (рассуждающие модели) и клиент рвёт соединение по таймауту ожидания; значение — меньше таймаута клиента
+cliproxyapi_keepalive_seconds: 0
+# слать heartbeat и до первого токена (streaming.send-keepalive-before-ft); без этого флага до первого токена кадров нет
+cliproxyapi_keepalive_before_first_token: false

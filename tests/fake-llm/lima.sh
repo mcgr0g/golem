@@ -9,7 +9,7 @@ case "${1:?start|stop|status}" in
     limactl copy "$dir/server.py" "$vm:/tmp/fake-llm-server.py"
     limactl shell "$vm" -- sudo install -D -m 0644 -o root -g root /tmp/fake-llm-server.py /opt/fake-llm/server.py
     limactl shell "$vm" -- sudo systemd-run --unit=fake-llm --property=DynamicUser=yes --property=MemoryMax=64M \
-      --property=Restart=on-failure python3 -I /opt/fake-llm/server.py
+      --property=Restart=on-failure --setenv=FAKE_LLM_FIRST_TOKEN_DELAY="${FAKE_LLM_FIRST_TOKEN_DELAY:-0}" python3 -I /opt/fake-llm/server.py
     ;;
   stop)
     limactl shell "$vm" -- sudo systemctl stop fake-llm

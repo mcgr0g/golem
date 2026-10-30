@@ -17,6 +17,11 @@ observability:
     usage-statistics-enabled: true
 oauth:
   auth-dir: "/var/lib/cliproxyapi/auth"
+{% if cliproxyapi_keepalive_seconds | int > 0 %}
+streaming:
+  keepalive-seconds: {{ cliproxyapi_keepalive_seconds | int }}
+  send-keepalive-before-ft: {{ cliproxyapi_keepalive_before_first_token | bool | to_json }}
+{% endif %}
 requests:
   proxy-url: {{ cliproxyapi_proxy_url | to_json }}
 {% if cliproxyapi_openai_compatibility %}
