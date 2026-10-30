@@ -50,7 +50,8 @@ build_caddy() {
   local out="$build/$arch/caddy" mods
   # xcaddy ставим под хост (GOOS/GOARCH цели передаются только самой сборке)
   GOBIN="$build/tools" go install "github.com/caddyserver/xcaddy/cmd/xcaddy@$xcaddy_version"
-  GOOS=linux GOARCH="$arch" CGO_ENABLED=0 \
+  # -buildvcs=false: иначе в бинарник вшиваются коммит и время репозитория, и он меняется с каждым коммитом
+  GOOS=linux GOARCH="$arch" CGO_ENABLED=0 GOFLAGS=-buildvcs=false \
     "$build/tools/xcaddy" build "$caddy_version" \
     --with github.com/mholt/caddy-ratelimit --with github.com/caddy-dns/duckdns --output "$out"
   mods="$(go version -m "$out")"
