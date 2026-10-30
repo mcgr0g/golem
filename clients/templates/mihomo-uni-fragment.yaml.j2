@@ -1,0 +1,29 @@
+# {{ ansible_managed }}
+# Фрагмент для общего профиля mihomo (cfg.mih.uni.yml): провайдер golem-ai подставляется в proxy-providers,
+# группа «Pinned Proxy» использует его (use: [golem-ai]). Содержит секрет (uuid, путь).
+# Слои без golem (телефоны, NAS) обязаны переопределять golem-ai как type: http с `payload: null`
+# и обнулять `tunnels: []` (списки слияние заменяет целиком).
+proxy-providers:
+  golem-ai:
+    type: inline
+    payload:
+      - name: "golem-{{ inventory_hostname }}"
+        type: vless
+        server: {{ domain }}
+        port: 443
+        uuid: {{ vless_users[0].id }}
+        network: ws
+        tls: true
+        udp: false
+        servername: {{ domain }}
+        alpn: [http/1.1]
+        client-fingerprint: chrome
+        ws-opts:
+          path: /{{ ws_path }}
+          headers: { Host: {{ domain }} }
+        ip-version: ipv4
+{% if xray_cpa_route_enabled | default(false) | bool %}
+# Верхний уровень профиля: локальный порт к cliproxyapi через golem (ADR 0012)
+tunnels:
+  - tcp,127.0.0.1:{{ client_artifacts_cpa_local_port }},{{ xray_cpa_domain }}:{{ cliproxyapi_port }},Pinned Proxy
+{% endif %}

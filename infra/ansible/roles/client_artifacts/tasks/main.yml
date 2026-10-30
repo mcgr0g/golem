@@ -13,7 +13,7 @@
     src: "{{ client_artifacts_templates_dir }}/{{ item }}.j2"
     dest: "{{ client_artifacts_out_dir }}/{{ item }}"
     mode: "0600"
-  loop: [mihomo-node.yaml, vless-link.txt, omp-env.txt, cpa-access.txt]
+  loop: [mihomo-node.yaml, mihomo-uni-fragment.yaml, vless-link.txt, omp-env.txt, cpa-access.txt]
   delegate_to: localhost
   become: false
   no_log: true
