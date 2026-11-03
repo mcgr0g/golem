@@ -10,6 +10,6 @@
 
 Web-мониторинг (опционально) — Gatus, `decisions/0011-monitoring-gatus.md`. Таймеры выше остаются как минимальный вариант без UI.
 
-## Gatus (роль `gatus`, `gatus_enabled: false` по умолчанию)
-Бинарник собирается на Mac (`mise run build:artifacts gatus`, `GATUS_VERSION`, по умолчанию v5.37.0), сверяется с `manifest.json`. Слушает `127.0.0.1:3002` (`gatus_port`), `DynamicUser`, `MemoryMax=64M`, sqlite в `/var/lib/gatus`. Проверки: `/healthz` CPA, TCP Xray и relay, Caddy (200 + срок сертификата > 7 суток, кроме `tls_mode: internal`: домен стенда с самой VM не резолвится). Алерты Telegram — при заданных токене и чате. Токен лежит в `/etc/gatus/env` (0600).
+## Gatus (роль `gatus`, `gatus_enabled: false` по умолчанию; включён на lima, stage и prod)
+Бинарник собирается на Mac (`mise run build:artifacts gatus`, `GATUS_VERSION`, по умолчанию v5.37.0), сверяется с `manifest.json`. Слушает `127.0.0.1:3002` (`gatus_port`), `DynamicUser`, `MemoryMax=64M`, sqlite в `/var/lib/gatus`. Проверки: `/healthz` CPA, TCP Xray и relay, Caddy (200 + срок сертификата > 7 суток, кроме `tls_mode: internal`: домен стенда с самой VM не резолвится). Алерты Telegram — при заданных токене и чате. Токен лежит в `/etc/gatus/env` (0600). Проверка Caddy ходит на домен снаружи: если 443 не доходит до VPS (NAT без проброса), она красная, а локальный `health-check` зелёный (prod 2026-11-03, RAM ~8 МБ).
 Проверено на Lima: служба active, UI отвечает 200 на 127.0.0.1:3002, cgroup ~10 MB. Не проверено: проверка Caddy и отправка в Telegram (нужен прод).
