@@ -1,5 +1,7 @@
 ---
 ops_timers_duckdns_enabled: "{{ duckdns_token | default('') | length > 0 and duckdns_subdomain | default('') | length > 0 }}"
+# явный IPv4 для A-записи (GOLEM_PUBLIC_IP); пусто — адрес исходящего запроса. За NAT входящий и исходящий адреса могут различаться
+ops_timers_duckdns_ipv4: "{{ lookup('ansible.builtin.env', 'GOLEM_PUBLIC_IP', default='') }}"
 ops_timers_health_check_enabled: true
 ops_timers_interval: 5min
 ops_timers_scripts_dir: /usr/local/lib/golem

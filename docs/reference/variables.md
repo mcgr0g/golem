@@ -33,6 +33,7 @@
 | `caddy_acme_ca` | env | `""` | URL каталога ACME (staging); пусто = боевой |
 | `ssh_user` | env | `ronnie` | пользователь Ansible и `AllowUsers` |
 | `xray_version`, `xray_assets`, `cliproxyapi_version`, `cliproxyapi_assets` | all | `group_vars/all/versions.yml` | пины версий и sha256 по `target_arch` |
+| `ops_timers_duckdns_ipv4` (`GOLEM_PUBLIC_IP`) | окружение (`mise.local.toml`) | пусто | явный IPv4 для A-записи DuckDNS; пусто — адрес исходящего запроса (за NAT может не совпасть с входящим) |
 | `duckdns_token` | common (sops) | — | DNS-01 и обновление DNS |
 | `GOLEM_SSH_HOST`, `GOLEM_SSH_PORT`, `GOLEM_DOMAIN`, `GOLEM_DUCKDNS_SUBDOMAIN` | окружение (`mise.local.toml`) | — | `ansible_host`, `ssh_external_port` (и `ansible_port`), `domain`, `duckdns_subdomain` прод-хоста |
 | `GOLEM_SSH_PORT_INTERNAL` | окружение (`mise.local.toml`), необязательно | пусто → равен `GOLEM_SSH_PORT`; при DNAT `22` | `ssh_port` (порт sshd). Заданный — признак DNAT: `ansible:bootstrap` ходит на внешний порт, а не на 22 |
