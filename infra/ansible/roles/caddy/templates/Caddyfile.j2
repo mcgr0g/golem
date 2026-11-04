@@ -5,6 +5,15 @@
 	auto_https disable_redirects
 	servers {
 		protocols h1 h2
+{% if caddy_proxy_protocol_from %}
+		# шлюз провайдера (SNAT) передаёт реальный IP клиента заголовком PROXY protocol; от остальных адресов заголовок не принимается
+		listener_wrappers {
+			proxy_protocol {
+				allow {{ caddy_proxy_protocol_from | join(' ') }}
+			}
+			tls
+		}
+{% endif %}
 	}
 }
 

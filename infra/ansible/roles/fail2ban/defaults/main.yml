@@ -13,3 +13,5 @@ fail2ban_auth_maxretry: 15
 fail2ban_auth_findtime: 10m
 fail2ban_auth_bantime: 24h
 fail2ban_caddy_log: /var/log/caddy/access.log
+# адреса шлюза с PROXY protocol: все клиенты видны с его адреса, бан по нему закрыл бы 443 для всех
+fail2ban_proxy_protocol_from: "{{ proxy_protocol_from | default([]) }}"

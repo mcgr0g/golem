@@ -10,7 +10,7 @@
 | Сертификат | боевой Let's Encrypt (`caddy_acme_ca: ""`); для отладки выпуска можно поставить staging CA | боевой Let's Encrypt |
 | Gatus | включён (`gatus_enabled: true`) | по умолчанию выключен (`gatus_enabled` не задан) |
 | RAM | 4 ГБ (замеры не для 1 ГБ) | 1 ГБ — лимиты `MemoryHigh/Max` проверять |
-| Сеть | прямой адрес, SSH на своём порту | возможен серый IP с DNAT: внешний порт → 22 внутри (`GOLEM_SSH_PORT_INTERNAL`); Q14 |
+| Сеть | прямой адрес, SSH на своём порту | возможен серый IP: DNAT для SSH (`GOLEM_SSH_PORT_INTERNAL`), SNAT + PROXY protocol для 443 (`GOLEM_PROXY_PROTOCOL_FROM`); Q14 |
 | `ssh_keys.yml` | `inventories/stage/group_vars/all/ssh_keys.yml` | `inventories/prod/group_vars/all/ssh_keys.yml` |
 
 ## Порядок
@@ -49,7 +49,7 @@
 
 ## Особенности prod
 
-- Серый IP/DNAT: подтверждено у провайдера, что 80/443 и один внешний порт SSH пробрасываются; реальный IP клиента сохраняется. Не проверено: работа fail2ban за DNAT и DuckDNS — Q14.
+- Серый IP: SSH — DNAT (реальный IP виден sshd), 443 — SNAT через шлюз с PROXY protocol: задайте `GOLEM_PROXY_PROTOCOL_FROM="<адрес шлюза>"` в `mise.local.toml` (ADR 0013) — без этого бан шлюза закроет 443 для всех. 80 шлюз не доводит и он не нужен; входящий и исходящий адреса различаются — `GOLEM_PUBLIC_IP`. Не проверено: постоянный ли адрес шлюза — Q14.
 - Смена порта SSH на уже работающем хосте — только через `site.yml --tags firewall,ssh_hardening` с `ansible_port` старого порта (`-e ansible_port=<старый>`); порядок «сначала открыть новый, затем закрыть старый» — `components/security-baseline.md`.
 - До покупки узнать, есть ли у провайдера консоль или rescue — Q11.
 - Лимиты памяти и реакция на 1 ГБ — Q8; автопродление сертификата — Q13.

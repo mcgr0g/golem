@@ -6,3 +6,6 @@ caddy_landing_root: /var/www/landing
 caddy_rl_ws: 300   # WS-рукопожатий в минуту на IP: браузер через туннель открывает десятки соединений за секунды
 caddy_rl_llm: 120
 caddy_rl_static: 120
+
+# PROXY protocol от шлюза провайдера (SNAT): из общего proxy_protocol_from; пусто = белый IP, блок не рендерится
+caddy_proxy_protocol_from: "{{ proxy_protocol_from | default([]) }}"

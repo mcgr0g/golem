@@ -2,7 +2,7 @@
 [DEFAULT]
 banaction = ufw
 banaction_allports = ufw
-ignoreip = 127.0.0.1/8 ::1{% for ip in fail2ban_ignoreip %} {{ ip }}{% endfor %}
+ignoreip = 127.0.0.1/8 ::1{% for ip in fail2ban_ignoreip + fail2ban_proxy_protocol_from %} {{ ip }}{% endfor %}
 
 [sshd]
 enabled = true

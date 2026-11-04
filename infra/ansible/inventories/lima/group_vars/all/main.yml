@@ -19,3 +19,5 @@ cliproxyapi_openai_compatibility:
     models:
       - { name: fake-upstream-a, alias: fake-chat-a }
       - { name: fake-upstream-b, alias: fake-chat-b }
+# адреса/CIDR шлюза провайдера, шлющего PROXY protocol (SNAT); через пробел; пусто = белый IP (ADR 0013)
+proxy_protocol_from: "{{ lookup('ansible.builtin.env', 'GOLEM_PROXY_PROTOCOL_FROM', default='') | split }}"

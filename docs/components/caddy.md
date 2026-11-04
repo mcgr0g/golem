@@ -18,6 +18,8 @@
 - TLS-ALPN-01 на боевом Let's Encrypt проверен на стенде stage (`golem-dev`, x86_64, `tls_mode: acme`, `caddy_acme_ca: ""`): сертификат (издатель Let's Encrypt, срок 90 дней) выпущен с первой попытки, проверки шли в том числе по IPv6. Автопродление не наблюдалось — Не проверено (см. `open-questions.md`, Q13). 
 - DNS-01 на боевом Let's Encrypt проверен на prod (`golem01`, 2026-11-03): сертификат выпущен за несколько секунд. Prod переведён на `dns01_duckdns`, потому что за NAT провайдера TLS-ALPN-01 не прошёл (`Error getting validation data`, пока 443 не был проброшен). DNS-01 входящий 443 для выпуска не требует. Ранняя попытка на Mac упала на TLS handshake timeout к www.duckdns.org до создания челленджа; на VPS такой ошибки не было. Плагин пишет токен в TXT-запросах только через API DuckDNS, лог Caddy закрыт (см. выше).
 
+- PROXY protocol за SNAT-шлюзом (ADR 0013): при непустом `proxy_protocol_from` в `servers {}` добавляется `listener_wrappers { proxy_protocol { allow <шлюз> } tls }`. Проверено на Lima: заголовок от разрешённого адреса даёт в логе клиентский IP; без заголовка запрос обслуживается; от неразрешённого адреса заголовок отбрасывается (не подделать). Без параметра блока нет.
+
 Проверенный Caddyfile — образец; рабочая версия — шаблон `roles/caddy/templates/Caddyfile.j2` (Jinja вместо `{$ENV}`, `redir` уже добавлен). Конфиг проверяется `caddy adapt` до записи (`validate` через `caddy validate` создал бы лог-файл от root). Проверено в Lima: 401/200 для /v1/*, 404 для management и `..`, 308 на `/<app_path>`, WS 101 для Xray и relay, заголовка `Server` нет; RSS ~17 MB cgroup в покое. Редирект `/<app_path>` → `/<app_path>/` добавить (`redir`).
 
 ```

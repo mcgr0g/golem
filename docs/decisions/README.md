@@ -18,3 +18,4 @@
 | 0010 | Секреты: sops + age; SSH-ключи |
 | 0011 | Мониторинг: Gatus |
 | 0012 | Доступ к cliproxyapi через Xray (`cpa.golem`) |
+| 0013 | PROXY protocol за SNAT-шлюзом провайдера |

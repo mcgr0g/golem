@@ -8,3 +8,5 @@ tls_mode: dns01_duckdns   # TLS-ALPN-01 не прошёл за NAT провай�
 gatus_enabled: true
 # ssh_authorized_keys — в ssh_keys.yml (вне git), пример: ssh_keys.yml.example
 ssh_user: ronnie
+# адреса/CIDR шлюза провайдера, шлющего PROXY protocol (SNAT); через пробел; пусто = белый IP (ADR 0013)
+proxy_protocol_from: "{{ lookup('ansible.builtin.env', 'GOLEM_PROXY_PROTOCOL_FROM', default='') | split }}"

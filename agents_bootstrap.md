@@ -31,7 +31,7 @@ C4Context
 | Кто с кем общается (C4 L1–L2) | `docs/architecture/01-context.md`, `02-containers.md` |
 | Порты, RAM-бюджет, фаервол, развёртывание | `docs/architecture/03-deployment.md` |
 | Потоки трафика (omp, LLM, прокси, цепочка) | `docs/architecture/04-traffic-flows.md` |
-| Почему так, а не иначе | `docs/decisions/` (ADR 0001–0012) |
+| Почему так, а не иначе | `docs/decisions/` (ADR 0001–0013) |
 | Caddy / Xray / cliproxyapi / omp relay | `docs/components/<имя>.md` |
 | SSH, UFW, fail2ban, секреты (sops+age, инструкция для новичков) | `docs/components/security-baseline.md`, `docs/operations/secrets.md` |
 | Мониторинг (Gatus), RAM-алерт, DuckDNS | `docs/components/ops-timers.md` |
