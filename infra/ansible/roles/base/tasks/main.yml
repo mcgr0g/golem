@@ -1,4 +1,15 @@
 ---
+- name: Состояние /etc/machine-id
+  ansible.builtin.stat:
+    path: /etc/machine-id
+  register: base_machine_id
+
+# На образе провайдера файла не было: journald не стартует, а его перезапуск позже обрывает stdout сервисов (SIGPIPE)
+- name: Создать /etc/machine-id
+  ansible.builtin.command: systemd-machine-id-setup
+  changed_when: true
+  when: not base_machine_id.stat.exists or base_machine_id.stat.size == 0
+
 - name: Пакеты
   ansible.builtin.apt:
     name: "{{ base_packages }}"
