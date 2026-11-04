@@ -11,7 +11,7 @@ WorkingDirectory=/var/lib/cliproxyapi
 # без этой переменной каталог конфига read-only и панель отвечает 404
 Environment=MANAGEMENT_STATIC_PATH=/var/lib/cliproxyapi/static
 ExecStart=/opt/cliproxyapi/current/cli-proxy-api --config /etc/cliproxyapi/config.yaml
-Restart=on-failure
+Restart=always
 RestartSec=5
 MemoryHigh=96M
 MemoryMax=128M

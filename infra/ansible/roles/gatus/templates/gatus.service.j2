@@ -10,7 +10,7 @@ StateDirectory=gatus
 EnvironmentFile=/etc/gatus/env
 Environment=GATUS_CONFIG_PATH=/etc/gatus/config.yaml
 ExecStart=/usr/local/bin/gatus
-Restart=on-failure
+Restart=always
 RestartSec=5
 MemoryMax=64M
 NoNewPrivileges=true
