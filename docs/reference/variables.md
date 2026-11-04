@@ -33,7 +33,7 @@
 | `caddy_acme_ca` | env | `""` | URL каталога ACME (staging); пусто = боевой |
 | `ssh_user` | env | `ronnie` | пользователь Ansible и `AllowUsers` |
 | `xray_version`, `xray_assets`, `cliproxyapi_version`, `cliproxyapi_assets` | all | `group_vars/all/versions.yml` | пины версий и sha256 по `target_arch` |
-| `proxy_protocol_from` (`GOLEM_PROXY_PROTOCOL_FROM`) | окружение (`mise.local.toml`), инвентори | пусто | адреса/CIDR шлюза провайдера (SNAT + PROXY protocol), через пробел; пусто = белый IP. Выводит `caddy_proxy_protocol_from` (listener_wrappers) и `fail2ban_proxy_protocol_from` (ignoreip); ADR 0013 |
+| `proxy_protocol_from` (`GOLEM_PROXY_PROTOCOL_FROM`) | окружение (`mise.local.toml`), инвентори | пусто | адрес шлюза провайдера (SNAT + PROXY protocol); маска необязательна (без неё Caddy получает `/32` или `/128`), несколько адресов — через пробел; пусто = белый IP. Выводит `caddy_proxy_protocol_from` (listener_wrappers) и `fail2ban_proxy_protocol_from` (ignoreip); ADR 0013 |
 | `ops_timers_duckdns_ipv4` (`GOLEM_PUBLIC_IP`) | окружение (`mise.local.toml`) | пусто | явный IPv4 для A-записи DuckDNS; пусто — адрес исходящего запроса (за NAT может не совпасть с входящим) |
 | `duckdns_token` | common (sops) | — | DNS-01 и обновление DNS |
 | `GOLEM_SSH_HOST`, `GOLEM_SSH_PORT`, `GOLEM_DOMAIN`, `GOLEM_DUCKDNS_SUBDOMAIN` | окружение (`mise.local.toml`) | — | `ansible_host`, `ssh_external_port` (и `ansible_port`), `domain`, `duckdns_subdomain` прод-хоста |

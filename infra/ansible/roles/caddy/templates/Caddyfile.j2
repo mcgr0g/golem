@@ -9,7 +9,8 @@
 		# шлюз провайдера (SNAT) передаёт реальный IP клиента заголовком PROXY protocol; от остальных адресов заголовок не принимается
 		listener_wrappers {
 			proxy_protocol {
-				allow {{ caddy_proxy_protocol_from | join(' ') }}
+				allow{% for a in caddy_proxy_protocol_from %} {{ a if '/' in a else a ~ ('/128' if ':' in a else '/32') }}{% endfor %}
+
 			}
 			tls
 		}
