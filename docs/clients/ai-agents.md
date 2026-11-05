@@ -7,7 +7,7 @@
 - `omp-env.txt` — relay и веб-клиент omp, LLM по секретному пути Caddy;
 - `cpa-access.txt` — адреса и ключи cliproxyapi: `direct_base_url`, `api_key`, при включённом `xray_cpa_route_enabled` ещё `local_base_url`, `local_base_url_v1`, `management_key`.
 
-Два способа дойти до LLM:
+Три способа дойти до LLM:
 - **прямой** — `https://<domain>/<llm_path>/v1` через Caddy, прокси не нужен; наружу только `/v1/*` (`components/caddy.md`);
 - **локальный порт** — `local_base_url` из `cpa-access.txt` (`http://127.0.0.1:<GOLEM_CPA_LLM_PORT>`, по умолчанию 18317): клиент VLESS пробрасывает порт на VPS (mihomo, секция `tunnels:` из `cpa-access.txt`, проверено; v2rayN — Не проверено). Агенту прокси-настройки не нужны. Порт на VPS наружу не открывается (`research/llm-access/via-xray.md`).
 - **прокси-режим** — `http://cpa.golem:8317` через mihomo (правило `DOMAIN,cpa.golem,<узел>`): имя резолвит только Xray; агенту нужны `HTTP(S)_PROXY`/`PI_PROXY_*`/`pi-proxy-router`.
@@ -25,6 +25,8 @@
 ## pi
 
 ### `pi-cliproxyapi-provider`
+https://pi.dev/packages/@router-for-me/pi-cliproxyapi-provider
+
 - Транспорт: локальный порт — `CLIPROXYAPI_BASE_URL=local_base_url_v1` и `CLIPROXYAPI_API_KEY=api_key` из `cpa-access.txt`. Прямой по секретному пути Caddy — Не проверено.
 - Особенности: с локальным портом прокси агенту не нужен (проверено); нужен `CLIPROXYAPI_PROVIDER_NAME=cliproxyapi` (по умолчанию провайдер регистрируется как `cpa`), а правило `cliproxyapi/*` в `pi-proxy-router` на время работы через локальный порт отключить, иначе запрос уйдёт в прокси. `baseUrl` нужен с `/v1` (без него 404); список моделей появляется после `/cliproxyapi refresh models`; чат идёт на `/v1/chat/completions`. Конфиг провайдера — `~/.pi/agent/pi-cliproxyapi-provider/config.json` или переменные `CLIPROXYAPI_*`.
 
@@ -33,6 +35,7 @@
 - Особенности: правило `"cliproxyapi/*": "socks5h://…"` в `~/.pi/agent/proxy-router.json`; `socks5h` резолвит имя на стороне mihomo, нужно для `cpa.golem`. Альтернатива — `HTTP_PROXY`.
 
 ### `better-custom-provider`
+https://pi.dev/packages/better-custom-provider
 - Транспорт: прямой — `direct_base_url` и `api_key` из `cpa-access.txt` (мастер `/custom-provider`, стиль OpenAI Chat Completions). Секретный путь сохраняется как есть. Не проверено запуском (по исходникам префикс не срезается).
 
 ## ccs
@@ -47,3 +50,11 @@
 
 ## Панель и management
 `management_key` и `/management.html` доступны только по туннельному адресу или через SSH-туннель (`operations/tunnel.md`); Caddy их наружу не отдаёт.
+
+### Вход провайдеров по OAuth через панель
+Нужен SSH-туннель `mise run tunnel:up` (не туннель mihomo): в `redirect_uri` стоит `http://localhost:<порт>/` (например 54545), после авторизации браузер идёт на этот порт на Mac, и он должен вести на тот же порт loopback VPS. Для этого порт колбэка добавляют в `GOLEM_TUNNEL_FORWARDS` (например `54545:127.0.0.1:54545`); порт у каждого провайдера свой, он виден в `redirect_uri` ссылки входа.
+
+В браузере может потребоваться отключить https://addons.mozilla.org/ru/firefox/addon/canvasblocker/ с ним не работает формирование redirect url.
+
+Порядок: `tunnel:up` → панель `http://127.0.0.1:18317/management.html` → запуск входа → ссылка в браузер → авторизация. Проверено: вход прошёл через `tunnel:up`; через туннель mihomo (`GOLEM_CPA_LLM_PORT`) не прошёл (возврат на страницу выбора аккаунта). Какие именно порты были проброшены в успешном входе — Не проверено.
+
