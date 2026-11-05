@@ -1,5 +1,5 @@
 # Пины версий. Подключается через vars_files в плейбуках (не через group_vars: каталог не рядом с плейбуками).
-# Обновление: поменять версию и sha256, прогнать роль на Lima.
+# Порядок обновления — docs/first-start-vps.md, раздел «Обновление версий».
 xray_version: "v26.3.27"
 xray_assets:
   amd64:
@@ -9,14 +9,14 @@ xray_assets:
     name: Xray-linux-arm64-v8a.zip
     sha256: 4d30283ae614e3057f730f67cd088a42be6fdf91f8639d82cb69e48cde80413c
 
-cliproxyapi_version: "8.0.48"
+cliproxyapi_version: "8.0.55"
 cliproxyapi_assets:
   amd64:
-    name: CLIProxyAPI_8.0.48_linux_amd64.tar.gz
-    sha256: 095c46e7165842cf563f9665be86cf24a29ba94e57ab9bd67588fe5cc4c7125c
+    name: CLIProxyAPI_8.0.55_linux_amd64.tar.gz
+    sha256: 4cd593251db85e50c820f42e6ea5cecdd05f902201d3dbdb025671d4f306a123
   arm64:
-    name: CLIProxyAPI_8.0.48_linux_aarch64.tar.gz
-    sha256: 9ed7c06aa96d9cc6736ddfc897de07b8b6085731785087f6701f07ec9ec198dd
+    name: CLIProxyAPI_8.0.55_linux_aarch64.tar.gz
+    sha256: 62c136d7c6ee03cedebaad4be3e7fb9bcf14d095c96597fd92e68554c2a785c5
 
-cpa_panel_version: "v1.26.6"
-cpa_panel_sha256: 46aedbbc265ea1df5542c55565c3a475b2214d178a424515260c44e5de1e2e63
+cpa_panel_version: "v1.27.2"
+cpa_panel_sha256: 2f6cf57a8ca4ace1fadde0280cbd41084f56999738d0e692a30b135420f7fc30
