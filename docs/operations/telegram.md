@@ -1,6 +1,6 @@
 # Telegram: бот и chat_id
 
-Читать, когда: настраиваешь уведомления (ram-alert, Gatus, сообщение об установке Gatus).
+Читать, когда: настраиваешь уведомления (ram-alert, reboot-alert, Gatus, сообщение об установке Gatus).
 
 Значения `telegram_bot_token` и `telegram_chat_id` — в общих секретах (`mise secrets:edit common`, см. `secrets.md`).
 

@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+# {{ ansible_managed }}
+# Нужна перезагрузка: установлено ядро новее работающего (на Debian reboot-required для ядер не создаётся)
+# или есть /var/run/reboot-required. Запись в журнал (stderr) и, если задан токен, одно сообщение в Telegram;
+# повтор не шлётся, пока перезагрузка не выполнена (флаг в /run очищается при загрузке).
+set -euo pipefail
+flag="$RUNTIME_DIRECTORY/active"
+running="$(uname -r)"
+newest="$(find /boot -maxdepth 1 -name 'vmlinuz-*' -printf '%f\n' | sed 's/^vmlinuz-//' | sort -V | tail -n 1)"
+reason=""
+if [ -n "$newest" ] && [ "$newest" != "$running" ] && [ "$(printf '%s\n%s\n' "$running" "$newest" | sort -V | tail -n 1)" = "$newest" ]; then
+  reason="ядро $running, установлено $newest"
+elif [ -e /var/run/reboot-required ]; then
+  reason="существует /var/run/reboot-required"
+fi
+if [ -z "$reason" ]; then
+  rm -f "$flag"
+  exit 0
+fi
+msg="golem {{ inventory_hostname }}: нужна перезагрузка ($reason)"
+echo "$msg" >&2
+[ ! -e "$flag" ] || exit 0
+if [ -n "${TELEGRAM_BOT_TOKEN:-}" ] && [ -n "${TELEGRAM_CHAT_ID:-}" ]; then
+  printf 'url = "https://api.telegram.org/bot%s/sendMessage"\n' "$TELEGRAM_BOT_TOKEN" |
+    curl --fail --silent --show-error --max-time 20 --config - \
+      --data-urlencode "chat_id=$TELEGRAM_CHAT_ID" --data-urlencode "text=$msg" --output /dev/null
+fi
+touch "$flag"

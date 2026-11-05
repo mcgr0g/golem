@@ -6,6 +6,6 @@ ops_timers_health_check_enabled: true
 ops_timers_interval: 5min
 ops_timers_scripts_dir: /usr/local/lib/golem
 ops_timers_enabled: >-
-  {{ ['ram-alert']
+  {{ ['ram-alert', 'reboot-alert']
      + (['duckdns-update'] if ops_timers_duckdns_enabled | bool else [])
      + (['health-check'] if ops_timers_health_check_enabled | bool else []) }}

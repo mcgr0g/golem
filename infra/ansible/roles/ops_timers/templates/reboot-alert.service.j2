@@ -1,0 +1,15 @@
+# {{ ansible_managed }}
+[Unit]
+Description=Уведомление о необходимости перезагрузки
+
+[Service]
+Type=oneshot
+EnvironmentFile=/etc/golem/telegram.env
+RuntimeDirectory=golem-reboot-alert
+RuntimeDirectoryPreserve=yes
+ExecStart={{ ops_timers_scripts_dir }}/reboot-alert.sh
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+DynamicUser=true

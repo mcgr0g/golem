@@ -15,7 +15,7 @@
     owner: root
     group: root
     mode: "0755"
-  loop: [duckdns-update, ram-alert, health-check]
+  loop: [duckdns-update, ram-alert, reboot-alert, health-check]
 
 - name: Файл окружения DuckDNS (токен)
   ansible.builtin.template:
