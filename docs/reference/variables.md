@@ -12,7 +12,7 @@
 | `tls_mode` | env | `acme`/`internal`/`dns01_duckdns` | выпуск сертификата |
 | `app_path`, `ws_path`, `llm_path` | host (sops) | случайные | секретные маршруты |
 | `vless_users` | host (sops) | список `{id,email}` | клиенты Xray |
-| `cliproxyapi_named_keys` | host (sops) | словарь `имя: ключ` | Bearer-ключи доступа: имена `home-/work-{pi,omp,ccs,oc}`, `cell`, `nas-01`…`nas-05`, значение `<имя>-<hex>`; в конфиг cpa попадает плоским списком (`secrets:keys`) |
+| `cliproxyapi_named_keys` | host (sops) | словарь `имя: ключ` | Bearer-ключи доступа: имена `home-/work-{pi,omp,ccs,oc}`, `cell`, `nas-01`…`nas-05`, значение `<имя>-<hex>`; начальные ключи при bootstrap; после — управляются через панель CPA |
 | `cliproxyapi_openai_compatibility` | роль; значение только в inventories lima | `[]` | провайдеры `openai-compatibility` в конфиге cliproxyapi (в Lima — фиктивный апстрим `tests/fake-llm`) |
 | `cliproxyapi_keepalive_seconds`, `cliproxyapi_keepalive_before_first_token` | роль | `0`, `false` | `streaming.keepalive-seconds` и `send-keepalive-before-ft` в конфиге cliproxyapi: SSE-комментарии `: keep-alive`, в том числе до первого токена. 0 — выключено |
 | `cliproxyapi_proxy_url` | host | `""` | выход через static ISP прокси |

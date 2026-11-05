@@ -19,3 +19,4 @@
 | 0011 | Мониторинг: Gatus |
 | 0012 | Доступ к cliproxyapi через Xray (`cpa.golem`) |
 | 0013 | PROXY protocol за SNAT-шлюзом провайдера |
+| 0014 | Bootstrap-only конфиг cliproxyapi; ключи управляются через панель |

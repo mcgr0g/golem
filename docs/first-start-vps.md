@@ -44,7 +44,7 @@
 1. `operations/smoke-checklist.md`: общий раздел; на prod — также «Только прод».
 2. Сертификат: `curl -I https://<домен>/` без `-k` → 200.
 3. DuckDNS: запись A (и AAAA, если у хоста есть глобальный IPv6) совпадает с адресом VPS. За NAT входящий и исходящий адреса могут не совпасть — Не проверено (Q14).
-4. LLM: ключи cliproxyapi — в `cpa-access.txt`; реальные провайдеры вводятся входом OAuth на VPS (`components/cliproxyapi.md`).
+4. Начальные ключи доступа CPA — в `clients/generated/<host>/cpa-keys.txt`; management-ключ для первого входа в панель — в `cpa-access.txt` (при включённом `xray_cpa_route_enabled`). Для добавления новых ключей после bootstrap: `mise run cpa:genkey` и ввод в панели (`components/cliproxyapi.md`).
 5. Трафик через туннель с Mac: `operations/testing-mihomo.md`.
 
 ## Обновление версий компонентов (stage, затем prod)

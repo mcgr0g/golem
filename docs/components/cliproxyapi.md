@@ -2,27 +2,59 @@
 
 Читать, когда: настраиваешь прокси LLM-API, ключи, апстримы, вход в аккаунты.
 
-- Роль: `cliproxyapi`. Репозиторий `router-for-me/CLIProxyAPI`, версия и sha256 архивов пинятся в `infra/ansible/group_vars/all/versions.yml`.
-- Релиз: `CLIProxyAPI_<ver>_linux_<arch>.tar.gz`, `<ver>` без `v`, `<arch>` = `amd64` | `aarch64`. Хэши в `checksums.txt` релиза (`sha256  имя`), роль сверяет. Архив плоский, бинарь называется `cli-proxy-api`. Обычная сборка (glibc 2.17+) подходит для Debian 12, `no-plugin` не нужна.
-- Конфиг v8 (`config-version: 8`): `server.host: 127.0.0.1`, `server.port: 8317`, `access.api-keys: [<ключи>]` (Bearer; плоский список строк из словаря `cliproxyapi_named_keys` в sops — cpa имён не знает; названия и состав — `scripts/secrets.sh`, ключи выдаёт `cpa-keys.txt`; ключи без записи в sops, выпущенные в панели, при перерисовке конфига пропадут), `management.secret-key: <bcrypt-хэш>` (панель включена только для туннеля, см. ниже), `oauth.auth-dir: /var/lib/cliproxyapi/auth`, `requests.proxy-url` — пусто или static ISP прокси.
-- Каталог `auth` создавать заранее с правами 0700 (приложение само создаёт его с 0755). Файлы токенов приложение пишет с 0600.
-- Новые auth-файлы подхватываются без рестарта; класть атомарно (`mv` из того же ФС), иначе возможна гонка с `permission denied`.
-- RAM: RSS в покое ~51 MB (cgroup ~22 MB), `MemoryMax=128M` достаточно; под нагрузкой не измерялось.
-- При старте ходит наружу (каталоги моделей, версии antigravity/npm) с IP VPS или через `proxy-url` — учитывать в политике IP.
-- Systemd: пользователь `cliproxyapi`, `StateDirectory=cliproxyapi`, `StateDirectoryMode=0700`, `MemoryMax=128M`. Образец юнита — в отчёте проверки (`local/research/q4-q5-cliproxyapi.md`, вне git).
-- Вход в аккаунты без браузера: флаги `-no-browser`, `-oauth-callback-port N`, `-codex-device-login`. Порты по умолчанию: codex 1455, claude 54545, antigravity 51121. Способы: SSH-туннель на callback-порт либо вставить в stdin callback-URL из адресной строки браузера (окно ~15 с).
-- Перенос токенов с Mac технически возможен (самодостаточный JSON, привязки к машине нет), но первый вход пойдёт с IP Mac, а копии токена на Mac и VPS конфликтуют при обновлении refresh-токена. Предпочтительно логиниться на VPS при заданном `requests.proxy-url` на static ISP.
-- Не проверено: реальные логины, приём вставленного URL провайдером, refresh перенесённого токена, RSS под нагрузкой, запуск бинарника amd64 (проверена только aarch64, amd64 — по хэшу).
+## Установка и конфигурация
 
-## Панель управления (Management API) — только через SSH-туннель
-- Включение: непустой `management.secret-key`. Класть готовый bcrypt-хэш (`htpasswd -bnBC 10`): запись хэша обратно в read-only конфиг не удаётся. Cost 10 (~0,07 с на запрос; cost 14 — 0,75 с). Ключ — в `Authorization: Bearer` или `X-Management-Key`. `MANAGEMENT_PASSWORD` не использовать (принудительно включает allow-remote). 5 неверных ключей подряд = бан IP на 30 мин (в памяти).
-- **Безопасность (проверено):** запрос от Caddy приходит с 127.0.0.1 и считается локальным, поэтому `allow-remote: false` НЕ защищает от внешних клиентов. Защита двойная: (1) Caddy пропускает только `/<llm_path>/v1/*` (`components/caddy.md`); (2) `server.trusted-proxies: ["127.0.0.1"]` — внешние клиенты через Caddy получают 403, а туннель работает. Без (2) внешний перебор ключей банит и владельца.
-- Статика панели — один `management.html` (Cli-Proxy-API-Management-Center; версия и sha256 — `cpa_panel_*` в `versions.yml`). По умолчанию качается с GitHub при старте и раз в 3 часа. Пиннинг: роль кладёт файл (проверка sha256, до первого старта, 0644, атомарно) в `/var/lib/cliproxyapi/static/`, `management.disable-auto-update-panel: true`, drop-in `Environment=MANAGEMENT_STATIC_PATH=/var/lib/cliproxyapi/static` (без него каталог конфига read-only и панель отвечает 404).
-- Фиктивный апстрим для проверок без реальных доступов: переменная `cliproxyapi_openai_compatibility` (по умолчанию пусто, значение только в `inventories/lima`) + заглушка `tests/fake-llm/lima.sh start`; модели `fake-chat-a`/`fake-chat-b`, SSE через cliproxyapi и Caddy приходит по частям.
-- Доступ через Xray (`cpa.golem:8317`, ADR 0012): запрос приходит с 127.0.0.1 и считается локальным, `/management.html` отдаётся без ключа, `/v0/management/*` требует `management_key` (он в `cpa-access.txt`).
-- SSE heartbeat: `cliproxyapi_keepalive_seconds` (по умолчанию 0 — выключен) и `cliproxyapi_keepalive_before_first_token`. Без них клиент не получает ни байта до первого токена; рассуждающие модели (Antigravity/Gemini, до 30–60 с по описанию стороннего проекта `claude-code-relay`, Не проверено на реальном провайдере) могут упереться в таймаут клиента. Включать значением заметно меньше таймаута клиента (оценка: 10–15 с). Проверено на Lima с заглушкой (`FAKE_LLM_FIRST_TOKEN_DELAY=40 tests/fake-llm/lima.sh start`): `: keep-alive` приходят через Caddy каждые ~10 с, затем обычные кадры и `[DONE]`. pi 1.4.0, omp 18.12.6 и ccs 8.10.0 при задержке 40 с получили ответ без ошибок SSE и таймаутов (43–44 с на запрос; контрольный прогон без heartbeat не делался, поэтому пользу от него против таймаута клиента это не доказывает). Билинг-блок Claude Code (`x-anthropic-billing-header`) шлюз вырезает для не-Anthropic апстримов сам (проверено по исходникам v8.0.35 и v8.0.48).
-- Доступ: `mise run cpa:panel` (`operations/tunnel.md`), `http://127.0.0.1:8317/management.html`, ввод ключа в форме.
-- Лимиты: `/v0/management/auth-files` — по аккаунту `cooldowns`, `status`, `success`/`failed`; `/v0/management/api-key-usage` — счётчики по ключам (`failed` включает 429); квоты OAuth-аккаунтов панель сама запрашивает у провайдеров с VPS. Статистика: `observability.usage.usage-statistics-enabled: true` (по умолчанию false), хранится только в памяти и обнуляется при рестарте. Очередь `/v8/management/observability/usage/queue` читается деструктивно — внешний потребитель крадёт записи у панели, не использовать.
-- Встроенных алертов и вебхуков нет. Для мониторинга: `/healthz` без ключа; `auth-files` с ключом через jsonpath (Gatus). Read-only ключа нет: любой ключ даёт полный доступ, включая токены.
+- Роль: `cliproxyapi`. Репозиторий `router-for-me/CLIProxyAPI`, версия и sha256 пинятся в `infra/ansible/group_vars/all/versions.yml`.
+- Релиз: `CLIProxyAPI_<ver>_linux_<arch>.tar.gz`, `<ver>` без `v`, `<arch>` = `amd64` | `aarch64`. Обычная сборка (glibc 2.17+) подходит для Debian 12.
+- Конфиг v8 (`config-version: 8`): `server.host: 127.0.0.1`, `server.port: 8317`, `server.trusted-proxies: ["127.0.0.1"]`, `access.api-keys`, `management.secret-key: <bcrypt-хэш>`, `management.allow-remote: false`, `oauth.auth-dir: /var/lib/cliproxyapi/auth`, `requests.proxy-url` — пусто или static ISP прокси.
+- **Конфиг создаётся один раз** при bootstrap (`/var/lib/cliproxyapi/config.yaml`, owner `cliproxyapi`, 0600). Ansible не перезаписывает его при последующих прогонах. Изменения через панель CPA сохраняются.
+- Каталог `auth` создаётся заранее с правами 0700 (приложение само создаёт его с 0755). Новые auth-файлы подхватываются без рестарта; класть атомарно (`mv` из того же ФС).
+- RAM: RSS в покое ~51 MB (cgroup ~22 MB), `MemoryMax=128M` достаточно.
+- При старте ходит наружу (каталоги моделей, версии antigravity/npm) с IP VPS или через `proxy-url`.
+
+## Панель управления
+
+Панель доступна двумя способами:
+
+- **SSH-туннель:** `mise run cpa:panel` — поднимает туннель и открывает `http://127.0.0.1:8317/management.html`. Требует `GOLEM_SSH_HOST`, `GOLEM_SSH_PORT`, `GOLEM_SSH_USER` в `mise.local.toml` (`operations/tunnel.md`).
+- **Через Xray (`cpa.golem:8317`, ADR 0012):** если включён маршрут Xray, запрос приходит с 127.0.0.1 и считается локальным. `/management.html` отдаётся без ключа; API требует `management_key` (он в `cpa-access.txt`).
+
+Включение: непустой `management.secret-key` (bcrypt-хэш, cost 10). Ключ — в `Authorization: Bearer` или `X-Management-Key`. 5 неверных попыток подряд = бан IP на ~30 мин (в памяти).
+
+**Безопасность (проверено):** запрос от Caddy приходит с 127.0.0.1 — `allow-remote: false` не защищает от внешних клиентов. Защита двойная: (1) Caddy пропускает только `/<llm_path>/v1/*`; (2) `server.trusted-proxies: ["127.0.0.1"]` — без этого внешний перебор ключей банит и владельца.
+
+Статика панели: роль кладёт `management.html` в `/var/lib/cliproxyapi/static/` (проверка sha256, до первого старта), `management.disable-auto-update-panel: true`. Без `MANAGEMENT_STATIC_PATH` панель отвечает 404.
+
+## Управление ключами доступа
+
+При bootstrap конфиг содержит начальный набор ключей из SOPS; они доступны в `cpa-keys.txt`. После этого ключи управляются через панель:
+
+- **Добавить:** `mise run cpa:genkey` — выводит 48 hex-символов; ввести в поле ключа в панели.
+- **Отозвать:** удалить ключ в панели CPA.
+
+⚠️ Пустой список ключей = **fail-open**: запросы без авторизации проходят. При отзыве последнего ключа сначала добавить новый, только потом удалять старый.
+
+Панель сохраняет изменения в `/var/lib/cliproxyapi/config.yaml`; они переживают рестарт сервиса. Ansible конфиг не перезаписывает.
+
+## Мониторинг и лимиты
+
+- `/healthz` без ключа — для Gatus.
+- `/v0/management/auth-files` — cooldowns, status OAuth-аккаунтов.
+- `/v0/management/api-key-usage` — счётчики по upstream-ключам провайдеров (не по клиентским); `failed` включает 429.
+- Статистика запросов: `observability.usage.usage-statistics-enabled: true` (включено по умолчанию в конфиге). Очередь `/v8/management/observability/usage/queue` читается деструктивно — использовать только один потребитель.
 - RSS с панелью и статистикой 56–64 MB; `MemoryMax=128M` достаточно.
-- Не проверено: реальные OAuth-аккаунты (cooldown, usage), работа панели в браузере (проверены HTTP-ответы), поведение при выключенной статистике, amd64.
+- Read-only ключа нет: любой ключ даёт полный доступ к Management API, включая OAuth-токены.
+
+## Входы OAuth
+
+Вход без браузера: флаги `-no-browser`, `-oauth-callback-port N`, `-codex-device-login`. Порты по умолчанию: codex 1455, claude 54545, antigravity 51121. Пробросить callback-порт через SSH-туннель или вставить в stdin callback-URL из адресной строки браузера (окно ~15 с). Логиниться на VPS при заданном `requests.proxy-url` на static ISP.
+
+Не проверено: refresh перенесённого токена, приём вставленного URL всеми провайдерами.
+
+## Фиктивный апстрим (только Lima)
+
+Переменная `cliproxyapi_openai_compatibility` (по умолчанию пусто, значение только в `inventories/lima`) + заглушка `tests/fake-llm/lima.sh start`; модели `fake-chat-a`/`fake-chat-b`. SSE через cliproxyapi и Caddy приходит по частям; `FAKE_LLM_FIRST_TOKEN_DELAY` имитирует задержку первого токена.
+
+## SSE heartbeat
+
+`cliproxyapi_keepalive_seconds` (по умолчанию 0 — выключено) и `cliproxyapi_keepalive_before_first_token`. Без них клиент не получает ни байта до первого токена; рассуждающие модели могут упереться в таймаут клиента. Включать значением меньше таймаута клиента (оценка: 10–15 с).
