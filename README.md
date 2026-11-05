@@ -1,7 +1,11 @@
 ## Why 
 
-Маленькая VPS помогает проще добраться по кластеров gpu.
-Голем помогает хозяину с простой работой - выступать в качестве web ui herness relay, роутить трафик до AI provider.
+Слепленный из нейрослопа голем помогает хозяину с роутингом до ai провайдеров, хостит harness web relay:
+
+- https://github.com/router-for-me/CLIProxyAPI
+- https://github.com/router-for-me/Cli-Proxy-API-Management-Center
+- https://github.com/can1357/oh-my-pi/tree/main/packages/collab-web
+- https://github.com/TwiN/gatus
 
 
 ## Overview
