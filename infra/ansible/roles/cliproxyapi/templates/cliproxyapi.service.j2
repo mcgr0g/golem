@@ -8,9 +8,9 @@ Wants=network-online.target
 User=cliproxyapi
 Group=cliproxyapi
 WorkingDirectory=/var/lib/cliproxyapi
-# без этой переменной каталог конфига read-only и панель отвечает 404
+# без этой переменной панель отвечает 404
 Environment=MANAGEMENT_STATIC_PATH=/var/lib/cliproxyapi/static
-ExecStart=/opt/cliproxyapi/current/cli-proxy-api --config /etc/cliproxyapi/config.yaml
+ExecStart=/opt/cliproxyapi/current/cli-proxy-api --config /var/lib/cliproxyapi/config.yaml
 Restart=always
 RestartSec=5
 MemoryHigh=96M

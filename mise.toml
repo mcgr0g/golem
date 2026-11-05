@@ -59,6 +59,10 @@ description = "Поднять туннель и открыть панель уп
 depends = ["tunnel:up"]
 run = 'open "http://127.0.0.1:${GOLEM_CPA_LOCAL_PORT:-8317}/management.html"'
 
+[tasks."cpa:genkey"]
+description = "Сгенерировать случайный ключ доступа CPA (48 hex-символов) для ввода в панели управления"
+run = 'openssl rand -hex 24'
+
 # Секреты (sops + age). Логика — scripts/secrets.sh; документация: docs/operations/secrets.md
 [tasks."secrets:init"]
 description = "Создать age-ключ (если нет), .sops.yaml и секреты хоста: secrets:init <host>"
@@ -68,12 +72,8 @@ run = "scripts/secrets.sh init"
 description = "Править секреты в редакторе: secrets:edit <host|common>"
 run = "scripts/secrets.sh edit"
 
-[tasks."secrets:keys"]
-description = "Добавить недостающие именованные ключи cliproxyapi: secrets:keys <host>"
-run = "scripts/secrets.sh keys"
-
 [tasks."secrets:rotate"]
-description = "Ротировать секреты: secrets:rotate <host> <uuid|paths|llm|key <имя>|mgmt|all>"
+description = "Ротировать секреты: secrets:rotate <host> <uuid|paths|mgmt|all>"
 run = "scripts/secrets.sh rotate"
 
 # Сборка артефактов на Mac. Документация: docs/operations/build-artifacts.md

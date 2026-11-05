@@ -120,35 +120,13 @@ cmd_edit() {
 set_value() { # файл, путь sops, значение (строка)
   printf '"%s"' "$3" | sops set --value-stdin "$1" "$2"
 }
-
-# Добавляет недостающие именованные ключи (существующие не трогает) и удаляет устаревший cliproxyapi_api_keys.
-cmd_keys() {
-  need sops; need openssl; need jq
-  local host="${1:?использование: secrets.sh keys <host>}" f n have added=0
-  f="$(host_file "$host")"
-  [ -f "$f" ] || die "нет файла $f (secrets:init <host>)"
-  have="$(sops decrypt --output-type json "$f" | jq -r '(.cliproxyapi_named_keys // {}) | keys[]')"
-  for n in "${key_names[@]}"; do
-    if ! grep -qx -- "$n" <<<"$have"; then
-      set_value "$f" "[\"cliproxyapi_named_keys\"][\"$n\"]" "$n-$(rand_hex 24)"
-      echo "добавлен ключ: $n"
-      added=$((added + 1))
-    fi
-  done
-  if sops decrypt --output-type json "$f" | jq -e 'has("cliproxyapi_api_keys")' >/dev/null; then
-    sops unset "$f" '["cliproxyapi_api_keys"]'
-    echo "удалён устаревший cliproxyapi_api_keys"
-  fi
-  echo "новых ключей: $added; дальше: ansible:site <env> --tags cliproxyapi,client_artifacts"
-}
-
 cmd_rotate() {
   need sops; need openssl; need htpasswd
-  local host="${1:?использование: secrets.sh rotate <host> <uuid|paths|llm|key <имя>|mgmt|all>}"
-  local what="${2:?укажите что ротировать: uuid|paths|llm|key|mgmt|all}" f mgmt n
+  local host="${1:?использование: secrets.sh rotate <host> <uuid|paths|mgmt|all>}"
+  local what="${2:?укажите что ротировать: uuid|paths|mgmt|all}" f mgmt
   f="$(host_file "$host")"
   [ -f "$f" ] || die "нет файла $f"
-  case "$what" in uuid|paths|llm|key|mgmt|all) ;; *) die "неизвестная цель '$what'" ;; esac
+  case "$what" in uuid|paths|mgmt|all) ;; *) die "неизвестная цель '$what'" ;; esac
   if [[ "$what" == uuid || "$what" == all ]]; then
     set_value "$f" '["vless_users"][0]["id"]' "$(uuidgen | tr 'A-Z' 'a-z')"
     echo "ротирован: vless_users[0].id"
@@ -159,31 +137,18 @@ cmd_rotate() {
     done
     echo "ротированы: app_path ws_path llm_path"
   fi
-  if [[ "$what" == llm || "$what" == all ]]; then
-    for n in "${key_names[@]}"; do
-      set_value "$f" "[\"cliproxyapi_named_keys\"][\"$n\"]" "$n-$(rand_hex 24)"
-    done
-    echo "ротированы: все именованные ключи cliproxyapi"
-  fi
-  if [[ "$what" == key ]]; then
-    n="${3:?укажите имя ключа: ${key_names[*]}}"
-    printf '%s\n' "${key_names[@]}" | grep -qx -- "$n" || die "неизвестное имя ключа '$n'"
-    set_value "$f" "[\"cliproxyapi_named_keys\"][\"$n\"]" "$n-$(rand_hex 24)"
-    echo "ротирован: $n"
-  fi
   if [[ "$what" == mgmt || "$what" == all ]]; then
     mgmt="$(rand_hex 24)"
     set_value "$f" '["cliproxyapi_management_key"]' "$mgmt"
     set_value "$f" '["cliproxyapi_management_key_hash"]' "$(printf '%s' "$mgmt" | mgmt_hash)"
     echo "ротирован: ключ management CPA"
   fi
-  echo "дальше: playbooks/rotate-secrets.yml и перегенерация clients/generated/"
+  echo "дальше: ansible:site <env> --tags caddy,xray, затем перегенерация clients/generated/"
 }
 
 case "${1:-}" in
   init) shift; cmd_init "$@" ;;
   edit) shift; cmd_edit "$@" ;;
-  keys) shift; cmd_keys "$@" ;;
   rotate) shift; cmd_rotate "$@" ;;
-  *) die "использование: secrets.sh init|edit|keys|rotate ..." ;;
+  *) die "использование: secrets.sh init|edit|rotate ..." ;;
 esac

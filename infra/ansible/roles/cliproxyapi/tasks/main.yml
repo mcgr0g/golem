@@ -23,7 +23,6 @@
   loop:
     - { path: /opt/cliproxyapi, owner: root, group: root, mode: "0755" }
     - { path: "/opt/cliproxyapi/{{ cliproxyapi_version }}", owner: root, group: root, mode: "0755" }
-    - { path: /etc/cliproxyapi, owner: root, group: cliproxyapi, mode: "0750" }
     - { path: /var/lib/cliproxyapi, owner: cliproxyapi, group: cliproxyapi, mode: "0700" }
     # приложение создаёт auth с 0755, поэтому заранее с 0700
     - { path: /var/lib/cliproxyapi/auth, owner: cliproxyapi, group: cliproxyapi, mode: "0700" }
@@ -70,15 +69,15 @@
   retries: 3
   delay: 5
 
-- name: Конфиг
+- name: Конфиг (bootstrap — создаётся один раз; изменения через панель CPA)
   ansible.builtin.template:
     src: config.yaml.j2
-    dest: /etc/cliproxyapi/config.yaml
-    owner: root
+    dest: /var/lib/cliproxyapi/config.yaml
+    owner: cliproxyapi
     group: cliproxyapi
-    mode: "0640"
+    mode: "0600"
+    force: false
   no_log: true
-  notify: Перезапустить cliproxyapi
 
 - name: Юнит
   ansible.builtin.template:
