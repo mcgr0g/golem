@@ -68,8 +68,12 @@ run = "scripts/secrets.sh init"
 description = "Править секреты в редакторе: secrets:edit <host|common>"
 run = "scripts/secrets.sh edit"
 
+[tasks."secrets:keys"]
+description = "Добавить недостающие именованные ключи cliproxyapi: secrets:keys <host>"
+run = "scripts/secrets.sh keys"
+
 [tasks."secrets:rotate"]
-description = "Ротировать секреты: secrets:rotate <host> <uuid|paths|llm|mgmt|all>"
+description = "Ротировать секреты: secrets:rotate <host> <uuid|paths|llm|key <имя>|mgmt|all>"
 run = "scripts/secrets.sh rotate"
 
 # Сборка артефактов на Mac. Документация: docs/operations/build-artifacts.md

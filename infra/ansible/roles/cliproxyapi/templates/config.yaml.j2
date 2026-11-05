@@ -6,7 +6,7 @@ server:
   # Caddy приходит с 127.0.0.1: без этого внешние клиенты считались бы локальными (components/cliproxyapi.md)
   trusted-proxies: ["127.0.0.1"]
 access:
-  api-keys: {{ cliproxyapi_api_keys | to_json }}
+  api-keys: {{ cliproxyapi_named_keys.values() | list | to_json }}
 management:
   # готовый bcrypt-хэш: приложение не может переписать read-only конфиг
   secret-key: {{ cliproxyapi_management_key_hash | to_json }}

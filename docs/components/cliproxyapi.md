@@ -4,7 +4,7 @@
 
 - Роль: `cliproxyapi`. Репозиторий `router-for-me/CLIProxyAPI`, версия и sha256 архивов пинятся в `infra/ansible/group_vars/all/versions.yml`.
 - Релиз: `CLIProxyAPI_<ver>_linux_<arch>.tar.gz`, `<ver>` без `v`, `<arch>` = `amd64` | `aarch64`. Хэши в `checksums.txt` релиза (`sha256  имя`), роль сверяет. Архив плоский, бинарь называется `cli-proxy-api`. Обычная сборка (glibc 2.17+) подходит для Debian 12, `no-plugin` не нужна.
-- Конфиг v8 (`config-version: 8`): `server.host: 127.0.0.1`, `server.port: 8317`, `access.api-keys: [<ключ>]` (Bearer, sops), `management.secret-key: <bcrypt-хэш>` (панель включена только для туннеля, см. ниже), `oauth.auth-dir: /var/lib/cliproxyapi/auth`, `requests.proxy-url` — пусто или static ISP прокси.
+- Конфиг v8 (`config-version: 8`): `server.host: 127.0.0.1`, `server.port: 8317`, `access.api-keys: [<ключи>]` (Bearer; плоский список строк из словаря `cliproxyapi_named_keys` в sops — cpa имён не знает; названия и состав — `scripts/secrets.sh`, ключи выдаёт `cpa-keys.txt`; ключи без записи в sops, выпущенные в панели, при перерисовке конфига пропадут), `management.secret-key: <bcrypt-хэш>` (панель включена только для туннеля, см. ниже), `oauth.auth-dir: /var/lib/cliproxyapi/auth`, `requests.proxy-url` — пусто или static ISP прокси.
 - Каталог `auth` создавать заранее с правами 0700 (приложение само создаёт его с 0755). Файлы токенов приложение пишет с 0600.
 - Новые auth-файлы подхватываются без рестарта; класть атомарно (`mv` из того же ФС), иначе возможна гонка с `permission denied`.
 - RAM: RSS в покое ~51 MB (cgroup ~22 MB), `MemoryMax=128M` достаточно; под нагрузкой не измерялось.

@@ -2,7 +2,7 @@
 # Доступ к cliproxyapi (LLM) на этом VPS. Содержит секреты (ключи).
 # Вариант 1: напрямую по секретному пути Caddy (без прокси; только /v1/*)
 direct_base_url = https://{{ domain }}/{{ llm_path }}/v1
-api_key = {{ cliproxyapi_api_keys[0] }}
+# Ключи доступа (api_key) по группам и клиентам — в cpa-keys.txt
 {% if xray_cpa_route_enabled | default(false) | bool %}
 # Вариант 2: локальный порт, который клиент VLESS пробрасывает через VPS на cliproxyapi (ADR 0012)
 local_base_url = http://127.0.0.1:{{ client_artifacts_cpa_local_port }}

@@ -32,7 +32,7 @@
           - ws_path | length > 0
           - llm_path | length > 0
           - vless_users | length > 0
-          - cliproxyapi_api_keys | length > 0
+          - cliproxyapi_named_keys | length > 0
           - cliproxyapi_management_key_hash | length > 0
         quiet: true
       tags: always

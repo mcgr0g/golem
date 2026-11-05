@@ -13,6 +13,10 @@ die() { echo "ошибка: $*" >&2; exit 1; }
 need() { command -v "$1" >/dev/null || die "не найдена команда '$1' (brew install age sops)"; }
 rand_hex() { openssl rand -hex "$1"; }   # hex = [0-9a-f] ⊂ [a-z0-9]
 
+# Именованные ключи доступа к cliproxyapi: <группа>[-<суффикс>]. Значение ключа: <имя>-<hex 24>.
+# cpa хранит ключи плоским списком строк; имена нужны только здесь и в cpa-keys.txt.
+key_names=(home-pi home-omp home-ccs home-oc work-pi work-omp work-ccs work-oc cell nas-01 nas-02 nas-03 nas-04 nas-05)
+
 host_file() {
   [[ "$1" =~ ^[a-z0-9][a-z0-9-]*$ ]] || die "имя хоста: [a-z0-9-], получено '$1'"
   echo "$secrets_dir/$1.sops.yml"
@@ -69,8 +73,8 @@ llm_path: "$(rand_hex 10)"
 vless_users:
   - id: "$(uuidgen | tr 'A-Z' 'a-z')"
     email: "owner@$host"
-cliproxyapi_api_keys:
-  - "$(rand_hex 24)"
+cliproxyapi_named_keys:
+$(for n in "${key_names[@]}"; do printf '  %s: "%s-%s"\n' "$n" "$n" "$(rand_hex 24)"; done)
 cliproxyapi_management_key: "$mgmt"
 cliproxyapi_management_key_hash: '$(printf '%s' "$mgmt" | mgmt_hash)'
 EOF
@@ -117,13 +121,34 @@ set_value() { # файл, путь sops, значение (строка)
   printf '"%s"' "$3" | sops set --value-stdin "$1" "$2"
 }
 
+# Добавляет недостающие именованные ключи (существующие не трогает) и удаляет устаревший cliproxyapi_api_keys.
+cmd_keys() {
+  need sops; need openssl; need jq
+  local host="${1:?использование: secrets.sh keys <host>}" f n have added=0
+  f="$(host_file "$host")"
+  [ -f "$f" ] || die "нет файла $f (secrets:init <host>)"
+  have="$(sops decrypt --output-type json "$f" | jq -r '(.cliproxyapi_named_keys // {}) | keys[]')"
+  for n in "${key_names[@]}"; do
+    if ! grep -qx -- "$n" <<<"$have"; then
+      set_value "$f" "[\"cliproxyapi_named_keys\"][\"$n\"]" "$n-$(rand_hex 24)"
+      echo "добавлен ключ: $n"
+      added=$((added + 1))
+    fi
+  done
+  if sops decrypt --output-type json "$f" | jq -e 'has("cliproxyapi_api_keys")' >/dev/null; then
+    sops unset "$f" '["cliproxyapi_api_keys"]'
+    echo "удалён устаревший cliproxyapi_api_keys"
+  fi
+  echo "новых ключей: $added; дальше: ansible:site <env> --tags cliproxyapi,client_artifacts"
+}
+
 cmd_rotate() {
   need sops; need openssl; need htpasswd
-  local host="${1:?использование: secrets.sh rotate <host> <uuid|paths|llm|mgmt|all>}"
-  local what="${2:?укажите что ротировать: uuid|paths|llm|mgmt|all}" f mgmt
+  local host="${1:?использование: secrets.sh rotate <host> <uuid|paths|llm|key <имя>|mgmt|all>}"
+  local what="${2:?укажите что ротировать: uuid|paths|llm|key|mgmt|all}" f mgmt n
   f="$(host_file "$host")"
   [ -f "$f" ] || die "нет файла $f"
-  case "$what" in uuid|paths|llm|mgmt|all) ;; *) die "неизвестная цель '$what'" ;; esac
+  case "$what" in uuid|paths|llm|key|mgmt|all) ;; *) die "неизвестная цель '$what'" ;; esac
   if [[ "$what" == uuid || "$what" == all ]]; then
     set_value "$f" '["vless_users"][0]["id"]' "$(uuidgen | tr 'A-Z' 'a-z')"
     echo "ротирован: vless_users[0].id"
@@ -135,8 +160,16 @@ cmd_rotate() {
     echo "ротированы: app_path ws_path llm_path"
   fi
   if [[ "$what" == llm || "$what" == all ]]; then
-    set_value "$f" '["cliproxyapi_api_keys"][0]' "$(rand_hex 24)"
-    echo "ротирован: cliproxyapi_api_keys[0]"
+    for n in "${key_names[@]}"; do
+      set_value "$f" "[\"cliproxyapi_named_keys\"][\"$n\"]" "$n-$(rand_hex 24)"
+    done
+    echo "ротированы: все именованные ключи cliproxyapi"
+  fi
+  if [[ "$what" == key ]]; then
+    n="${3:?укажите имя ключа: ${key_names[*]}}"
+    printf '%s\n' "${key_names[@]}" | grep -qx -- "$n" || die "неизвестное имя ключа '$n'"
+    set_value "$f" "[\"cliproxyapi_named_keys\"][\"$n\"]" "$n-$(rand_hex 24)"
+    echo "ротирован: $n"
   fi
   if [[ "$what" == mgmt || "$what" == all ]]; then
     mgmt="$(rand_hex 24)"
@@ -150,6 +183,7 @@ cmd_rotate() {
 case "${1:-}" in
   init) shift; cmd_init "$@" ;;
   edit) shift; cmd_edit "$@" ;;
+  keys) shift; cmd_keys "$@" ;;
   rotate) shift; cmd_rotate "$@" ;;
-  *) die "использование: secrets.sh init|edit|rotate ..." ;;
+  *) die "использование: secrets.sh init|edit|keys|rotate ..." ;;
 esac

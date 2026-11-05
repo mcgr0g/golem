@@ -1,0 +1,6 @@
+# {{ ansible_managed }}
+# Ключи доступа к cliproxyapi (Bearer, api_key) для {{ inventory_hostname }}. Содержит секреты.
+# Формат: имя = ключ. Имя = <группа>[-<клиент>]; права у всех ключей одинаковы (полный доступ к /v1/*).
+{% for name, key in cliproxyapi_named_keys.items() | sort %}
+{{ name }} = {{ key }}
+{% endfor %}
