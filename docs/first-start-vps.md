@@ -47,6 +47,17 @@
 4. LLM: ключи cliproxyapi — в `cpa-access.txt`; реальные провайдеры вводятся входом OAuth на VPS (`components/cliproxyapi.md`).
 5. Трафик через туннель с Mac: `operations/testing-mihomo.md`.
 
+## Обновление версий компонентов (stage, затем prod)
+
+Версии и sha256 xray, cliproxyapi и панели — `infra/ansible/group_vars/all/versions.yml`; Caddy, Gatus, omp — `scripts/build-artifacts.sh`. Номера версий в другие файлы не копируются.
+
+1. Новая версия: взять sha256 из `checksums.txt` релиза и пересчитать локально по скачанному файлу (`shasum -a 256`); обе суммы должны совпасть. Внести версию и sha256 для `amd64` и `arm64` в `versions.yml`.
+2. Lima: `mise run ansible:site lima --tags <роль>`, повтор — `changed=0`, сервис `active`, версия в журнале, `curl` на `/v1/models` без ключа даёт 401.
+3. Для Caddy, Gatus, relay и веб-клиента — сначала `TARGET_ARCH=amd64 mise run build:artifacts` (иначе проверка артефактов `omp_relay` не пройдёт).
+4. Осмотр: `mise run ansible:site <stage|prod> --tags <роль> --check --diff`. В `--check` распаковка новой версии может упасть, потому что каталог версии ещё не создан; это особенность режима, не ошибка.
+5. Реальный прогон: `mise run ansible:site <stage|prod> --tags <роль>`, затем повтор — `changed=0`. Роль `cliproxyapi` держит версионные каталоги: старые в `/opt/cliproxyapi/<версия>` не удаляются, чистить вручную.
+6. Проверка: `systemctl is-active` сервиса, `curl -I https://<домен>/` без `-k` → 200, Gatus зелёный (если включён). Откат — вернуть прежнюю версию и sha256 в `versions.yml` и повторить прогон.
+
 ## Особенности prod
 
 - Серый IP: SSH — DNAT (реальный IP виден sshd), 443 — SNAT через шлюз с PROXY protocol: задайте `GOLEM_PROXY_PROTOCOL_FROM="<адрес шлюза>"` в `mise.local.toml` (ADR 0013) — без этого бан шлюза закроет 443 для всех. 80 шлюз не доводит и он не нужен; входящий и исходящий адреса различаются — `GOLEM_PUBLIC_IP`. Не проверено: постоянный ли адрес шлюза — Q14.

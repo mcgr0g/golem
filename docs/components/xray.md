@@ -10,7 +10,7 @@
 - Логи: `loglevel: warning`, без access-логов (экономия диска, меньше следов).
 - Systemd: `MemoryHigh=80M`, `MemoryMax=96M`, пользователь `xray` (системный, без shell; `DynamicUser` не используем: конфиг `root:xray 0640`), `XRAY_LOCATION_ASSET=/opt/xray/current` (geoip.dat/geosite.dat лежат рядом с бинарником в `/opt/xray/<ver>`, `current` — симлинк; без них правило `geoip:private` не загрузится). Конфиг проверяется `xray run -test` до записи.
 - Клиентский профиль: `clients/mihomo-clash-verge.md`.
-- Нагрузка (Xray v26.3.27, aarch64, без TLS): покой RSS ~31 MB; 5 потоков по 400 MB + короткие соединения — пик cgroup 63 MB; шквал 50 параллельных циклов — RSS 47 MB, без OOM. `MemoryMax=96M` достаточен. Пик смотреть в `/sys/fs/cgroup/system.slice/xray.service/memory.peak` (`systemctl show -p MemoryPeak` на systemd 252 пуст). Повторить на x86 при первом выкате.
+- Нагрузка (Xray, aarch64, без TLS; версия — `versions.yml`): покой RSS ~31 MB; 5 потоков по 400 MB + короткие соединения — пик cgroup 63 MB; шквал 50 параллельных циклов — RSS 47 MB, без OOM. `MemoryMax=96M` достаточен. Пик смотреть в `/sys/fs/cgroup/system.slice/xray.service/memory.peak` (`systemctl show -p MemoryPeak` на systemd 252 пуст). Повторить на x86 при первом выкате.
 - Xray предупреждает, что WebSocket-транспорт устарел (рекомендует XHTTP). Остаёмся на WS (совместимость с Caddy и клиентами); смена — новый ADR.
 
 ## Режимы доступа через VLESS: общий прокси и проброс порта

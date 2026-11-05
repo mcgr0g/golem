@@ -28,7 +28,7 @@
 | `client_artifacts_out_dir`, `client_artifacts_templates_dir` | роль | `clients/generated/<host>`, `clients/templates` | выход и шаблоны клиентских конфигов |
 | `versions.*` | all | caddy/xray/cliproxyapi/omp | пины версий |
 | `cliproxyapi_management_key_hash` | host (sops) | bcrypt | `management.secret-key` |
-| `cpa_panel_version`, `cpa_panel_sha256` | all | v1.26.6 / sha256 | пиннинг `management.html` |
+| `cpa_panel_version`, `cpa_panel_sha256` | all | `versions.yml` | пиннинг `management.html` |
 | `caddy_rl_ws`, `caddy_rl_llm`, `caddy_rl_static` | env | 30 / 120 / 120 (оценка) | лимиты Caddy, событий/мин на IP |
 | `caddy_acme_ca` | env | `""` | URL каталога ACME (staging); пусто = боевой |
 | `ssh_user` | env | `ronnie` | пользователь Ansible и `AllowUsers` |

@@ -2,7 +2,7 @@
 
 Читать, когда: правишь TLS, маршруты, rate limit, логи.
 
-- Роль Ansible: `caddy`. Бинарник — кастомная сборка на Mac (ADR 0009, проверено v2.11.7): `xcaddy build --with github.com/mholt/caddy-ratelimit --with github.com/caddy-dns/duckdns`, `GOOS=linux GOARCH=amd64` для прода.
+- Роль Ansible: `caddy`. Бинарник — кастомная сборка на Mac (ADR 0009; версия — `CADDY_VERSION` в `scripts/build-artifacts.sh`): `xcaddy build --with github.com/mholt/caddy-ratelimit --with github.com/caddy-dns/duckdns`, `GOOS=linux GOARCH=amd64` для прода.
 - Порт 80 не слушается: `auto_https disable_redirects` (безопасно, выпуск и продление работают). `auto_https off` не использовать. HTTP-01 отключается на эмитенте: `tls { issuer acme { disable_http_challenge } }` (не глобальная опция).
 - `tls_mode` (переменная): `acme` (stage, TLS-ALPN-01), `dns01_duckdns` (prod), `internal` (Lima).
   - `internal`: `tls internal`
