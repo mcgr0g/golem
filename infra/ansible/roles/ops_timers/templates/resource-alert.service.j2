@@ -1,0 +1,23 @@
+# {{ ansible_managed }}
+[Unit]
+Description=Алерты по ресурсам (диск, юниты, OOM, CPU)
+
+[Service]
+Type=oneshot
+EnvironmentFile=/etc/golem/telegram.env
+Environment=DISK_FREE_MIN_PCT={{ ops_timers_resource_disk_free_min_pct }}
+Environment=RESTARTS_MAX={{ ops_timers_resource_restarts_max }}
+Environment=CPU_BUSY_PCT={{ ops_timers_resource_cpu_busy_pct }}
+Environment=STEAL_PCT={{ ops_timers_resource_steal_pct }}
+Environment=CPU_BREACH_RUNS={{ ops_timers_resource_cpu_breach_runs }}
+Environment="WATCH_UNITS={{ ops_timers_resource_watch_units | join(' ') }}"
+# состояние между запусками (флаги, счётчики) живёт в /run и очищается при загрузке
+RuntimeDirectory=golem-resource-alert
+RuntimeDirectoryPreserve=yes
+ExecStart={{ ops_timers_scripts_dir }}/resource-alert.sh
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+# не DynamicUser: под ним systemctl не подключается к D-Bus («Transport endpoint is not connected»)
+User=nobody

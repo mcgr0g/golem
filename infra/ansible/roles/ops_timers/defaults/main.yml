@@ -6,6 +6,14 @@ ops_timers_health_check_enabled: true
 ops_timers_interval: 5min
 ops_timers_scripts_dir: /usr/local/lib/golem
 ops_timers_enabled: >-
-  {{ ['ram-alert', 'reboot-alert']
+  {{ ['ram-alert', 'reboot-alert', 'resource-alert']
      + (['duckdns-update'] if ops_timers_duckdns_enabled | bool else [])
      + (['health-check'] if ops_timers_health_check_enabled | bool else []) }}
+# resource-alert: пороги (Telegram — при заданных telegram_bot_token и telegram_chat_id)
+ops_timers_resource_disk_free_min_pct: 15
+ops_timers_resource_restarts_max: 2
+# нагрузка CPU/steal за интервал таймера (5 мин); тревога после стольких нарушений подряд (2 × 5 мин = 10 мин)
+ops_timers_resource_cpu_busy_pct: 90
+ops_timers_resource_steal_pct: 10
+ops_timers_resource_cpu_breach_runs: 2
+ops_timers_resource_watch_units: [caddy, xray, cliproxyapi, omp-relay, fail2ban]

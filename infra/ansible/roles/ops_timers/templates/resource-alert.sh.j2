@@ -1,0 +1,92 @@
+#!/usr/bin/env bash
+# {{ ansible_managed }}
+# Алерты по ресурсам: диск, упавшие юниты и рестарты, OOM, устойчивая нагрузка CPU и steal.
+# Каждая проверка шлёт одно сообщение при нарушении (запись в журнал — на каждом запуске) и молчит,
+# пока нарушение не исчезнет. Состояние — в /run (очищается при загрузке, как и счётчики ядра).
+set -euo pipefail
+state="$RUNTIME_DIRECTORY"
+host="{{ inventory_hostname }}"
+
+notify() { # текст
+  if [ -n "${TELEGRAM_BOT_TOKEN:-}" ] && [ -n "${TELEGRAM_CHAT_ID:-}" ]; then
+    printf 'url = "https://api.telegram.org/bot%s/sendMessage"\n' "$TELEGRAM_BOT_TOKEN" |
+      curl --fail --silent --show-error --max-time 20 --config - \
+        --data-urlencode "chat_id=$TELEGRAM_CHAT_ID" --data-urlencode "text=$1" --output /dev/null
+  fi
+}
+# raise <ключ> <описание>: нарушение; сообщение уходит, если для этого ключа и описания ещё не отправляли
+raise() {
+  echo "golem $host: $2" >&2
+  if [ "$(cat "$state/$1.flag" 2>/dev/null || true)" != "$2" ]; then
+    notify "golem $host: $2"
+    printf '%s' "$2" >"$state/$1.flag"
+  fi
+}
+clear_flag() { rm -f "$state/$1.flag"; }
+
+# 1. диск
+used="$(df --output=pcent / | tail -n 1 | tr -dc '0-9')"
+free=$((100 - used))
+if [ "$free" -lt "$DISK_FREE_MIN_PCT" ]; then
+  raise disk "диск /: свободно ${free}% < ${DISK_FREE_MIN_PCT}%"
+else
+  clear_flag disk
+fi
+
+# 2. упавшие юниты
+failed="$(systemctl --failed --plain --no-legend | awk '{print $1}' | sort | paste -sd' ' -)"
+if [ -n "$failed" ]; then
+  raise failed "упавшие юниты: $failed"
+else
+  clear_flag failed
+fi
+
+# 3. рестарты: рост NRestarts с прошлого запуска на RESTARTS_MAX и больше (первый запуск только запоминает)
+rs=""
+for u in $WATCH_UNITS; do
+  n="$(systemctl show -p NRestarts --value "$u.service")"
+  old="$(cat "$state/nrestarts-$u" 2>/dev/null || echo "$n")"
+  [ "$n" -ge "$old" ] || old="$n"
+  if [ $((n - old)) -ge "$RESTARTS_MAX" ]; then rs="$rs $u(+$((n - old)))"; fi
+  echo "$n" >"$state/nrestarts-$u"
+done
+if [ -n "$rs" ]; then
+  raise restarts "частые рестарты за интервал:$rs"
+else
+  clear_flag restarts
+fi
+
+# 4. OOM: рост oom_kill с прошлого запуска (без базы — относительно нуля, т. е. любое событие с загрузки)
+oom="$(awk '$1=="oom_kill"{print $2}' /proc/vmstat)"
+oom_old="$(cat "$state/oom_kill" 2>/dev/null || echo 0)"
+echo "$oom" >"$state/oom_kill"
+if [ "$oom" -gt "$oom_old" ]; then
+  raise oom "OOM-убийство процесса (oom_kill $oom_old -> $oom), см. journalctl -k"
+fi
+
+# 5. CPU и steal за интервал между запусками; тревога после CPU_BREACH_RUNS нарушений подряд
+read -r _ user nice sys idle iow irq sirq steal _ </proc/stat
+total=$((user + nice + sys + idle + iow + irq + sirq + steal))
+busy=$((total - idle - iow))
+prev="$(cat "$state/cpu" 2>/dev/null || true)"
+echo "$total $busy $steal" >"$state/cpu"
+breach=0
+msg=""
+if [ -n "$prev" ]; then
+  read -r pt pb ps <<<"$prev"
+  dt=$((total - pt))
+  if [ "$dt" -gt 0 ]; then
+    busy_pct=$(((busy - pb) * 100 / dt))
+    steal_pct=$(((steal - ps) * 100 / dt))
+    if [ "$busy_pct" -ge "$CPU_BUSY_PCT" ]; then breach=1; msg="CPU занят ${busy_pct}% (порог ${CPU_BUSY_PCT}%)"; fi
+    if [ "$steal_pct" -ge "$STEAL_PCT" ]; then breach=1; msg="${msg:+$msg, }steal ${steal_pct}% (порог ${STEAL_PCT}%)"; fi
+  fi
+fi
+cnt="$(cat "$state/cpu-breaches" 2>/dev/null || echo 0)"
+if [ "$breach" -eq 1 ]; then cnt=$((cnt + 1)); else cnt=0; fi
+echo "$cnt" >"$state/cpu-breaches"
+if [ "$cnt" -ge "$CPU_BREACH_RUNS" ]; then
+  raise cpu "нагрузка держится $cnt запусков подряд: $msg"
+elif [ "$breach" -eq 0 ]; then
+  clear_flag cpu
+fi
