@@ -57,11 +57,17 @@
 		header Connection *Upgrade*
 		header Upgrade websocket
 	}
+{% if xray_transport == 'ws' %}
 	@ws_xray {
 		path /{{ ws_path }}
 		header Connection *Upgrade*
 		header Upgrade websocket
 	}
+{% elif xray_transport == 'xhttp' %}
+	@xhttp_xray {
+		path /{{ ws_path }} /{{ ws_path }}/*
+	}
+{% endif %}
 
 	handle @ws_relay {
 		rate_limit {
@@ -73,6 +79,7 @@
 		}
 		reverse_proxy 127.0.0.1:7466
 	}
+{% if xray_transport == 'ws' %}
 	handle @ws_xray {
 		rate_limit {
 			zone ws_xray {
@@ -81,8 +88,22 @@
 				window 1m
 			}
 		}
-		reverse_proxy 127.0.0.1:10000
+		reverse_proxy 127.0.0.1:{{ xray_port }}
 	}
+{% elif xray_transport == 'xhttp' %}
+	handle @xhttp_xray {
+		rate_limit {
+			zone xhttp_xray {
+				key {remote_host}
+				events {{ caddy_rl_ws }}
+				window 1m
+			}
+		}
+		reverse_proxy 127.0.0.1:{{ xray_port }} {
+			flush_interval -1
+		}
+	}
+{% endif %}
 	# Белый список: наружу только /v1/*. Остальное (/management.html, /v0/management/*, OAuth-callback)
 	# закрыто: запрос от Caddy приходит с 127.0.0.1 и считался бы локальным (components/cliproxyapi.md)
 	handle /{{ llm_path }}/v1/* {

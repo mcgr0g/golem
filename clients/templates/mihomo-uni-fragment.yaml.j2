@@ -1,17 +1,19 @@
 # {{ ansible_managed }}
-# Фрагмент для общего профиля mihomo (cfg.mih.uni.yml): провайдер golem-ai подставляется в proxy-providers,
-# группа «Pinned Proxy» использует его (use: [golem-ai]). Содержит секрет (uuid, путь).
-# Слои без golem (телефоны, NAS) обязаны переопределять golem-ai как type: http с `payload: null`
+# Фрагмент для общего профиля mihomo (cfg.mih.uni.yml): провайдеры подставляются в proxy-providers,
+# группа «Pinned Proxy» использует их (use: [{{ inventory_hostname }}-ws, {{ inventory_hostname }}-xhttp, ...]). Содержит секреты (uuid, пути).
+# Слои без golem (телефоны, NAS) обязаны переопределять каждый провайдер как type: http с `payload: null`
 # и обнулять `tunnels: []` (списки слияние заменяет целиком).
 proxy-providers:
-  golem-ai:
+{% for transport in xray_transports %}
+  {{ inventory_hostname }}-{{ transport }}:
     type: inline
     payload:
-      - name: "golem-{{ inventory_hostname }}"
+      - name: "{{ inventory_hostname }}-{{ transport }}"
         type: vless
         server: {{ domain }}
         port: 443
         uuid: {{ vless_users[0].id }}
+{% if transport == 'ws' %}
         network: ws
         tls: true
         udp: false
@@ -21,7 +23,21 @@ proxy-providers:
         ws-opts:
           path: /{{ ws_path }}
           headers: { Host: {{ domain }} }
+{% elif transport == 'xhttp' %}
+        network: xhttp
+        tls: true
+        udp: false
+        servername: {{ domain }}
+        alpn: [h2, http/1.1]
+        client-fingerprint: chrome
+        xhttp-opts:
+          path: /{{ ws_path }}
+          mode: auto
+          headers:
+            User-Agent: "{{ xray_xhttp_user_agents | random }}"
+{% endif %}
         ip-version: ipv4
+{% endfor %}
 {% if xray_cpa_route_enabled | default(false) | bool %}
 # Верхний уровень профиля: локальный порт к cliproxyapi через golem (ADR 0012)
 tunnels:

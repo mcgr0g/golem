@@ -13,3 +13,4 @@ gatus_enabled: true
 # ssh_authorized_keys — в ssh_keys.yml (вне git), пример: ssh_keys.yml.example
 # адреса/CIDR шлюза провайдера, шлющего PROXY protocol (SNAT); через пробел; пусто = белый IP (ADR 0013)
 proxy_protocol_from: "{{ lookup('ansible.builtin.env', 'GOLEM_PROXY_PROTOCOL_FROM', default='') | split }}"
+xray_transport: "xhttp"

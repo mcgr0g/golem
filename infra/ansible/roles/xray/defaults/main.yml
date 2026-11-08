@@ -4,3 +4,10 @@ xray_chain_enabled: false   # серверная цепочка к static ISP п
 # Маршрут имени xray_cpa_domain на loopback cliproxyapi (ADR 0012); включается в mise.local.toml: GOLEM_CPA_ROUTE = "true"
 xray_cpa_route_enabled: "{{ lookup('ansible.builtin.env', 'GOLEM_CPA_ROUTE') | default('false', true) | bool }}"
 xray_cpa_domain: cpa.golem
+xray_transport: ws  # ws | xhttp (legacy: единственный транспорт; используется для обратной совместимости)
+xray_transports: [ws, xhttp]  # список транспортов для multi-transport конфигов
+# Рандомизация XHTTP (extra headers)
+xray_xhttp_user_agents:
+  - "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+  - "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+  - "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"

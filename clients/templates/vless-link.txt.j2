@@ -1,1 +1,5 @@
-vless://{{ vless_users[0].id }}@{{ domain }}:443?encryption=none&type=ws&security=tls&sni={{ domain }}&host={{ domain }}&path=%2F{{ ws_path }}&alpn=http%2F1.1&fp=chrome#golem-{{ inventory_hostname }}
+{% if xray_transport == 'ws' %}
+vless://{{ vless_users[0].id }}@{{ domain }}:443?encryption=none&type=ws&security=tls&sni={{ domain }}&host={{ domain }}&path=%2F{{ ws_path }}&alpn=http%2F1.1&fp=chrome#{{ inventory_hostname }}-{{ xray_transport }}
+{% elif xray_transport == 'xhttp' %}
+vless://{{ vless_users[0].id }}@{{ domain }}:443?encryption=none&type=xhttp&security=tls&sni={{ domain }}&host={{ domain }}&path=%2F{{ ws_path }}&mode=auto&alpn=h2,http%2F1.1&fp=chrome#{{ inventory_hostname }}-{{ xray_transport }}
+{% endif %}
