@@ -10,4 +10,6 @@ gatus_enabled: true
 ssh_user: ronnie
 # адреса/CIDR шлюза провайдера, шлющего PROXY protocol (SNAT); через пробел; пусто = белый IP (ADR 0013)
 proxy_protocol_from: "{{ lookup('ansible.builtin.env', 'GOLEM_PROXY_PROTOCOL_FROM', default='') | split }}"
+# SSH через TUN требует увеличенного таймаута (подключение ~10 сек)
+ansible_ssh_common_args: "-o ConnectTimeout=60 -o ServerAliveInterval=30"
 xray_transport: "xhttp"

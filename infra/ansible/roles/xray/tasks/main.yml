@@ -86,21 +86,25 @@
           settings:
             decryption: none
             clients: "{{ vless_users }}"
-          streamSettings: >-
-            {{
-              {
-                'ws': {
-                  'network': 'ws',
-                  'security': 'none',
-                  'wsSettings': {'path': '/' ~ ws_path}
-                },
-                'xhttp': {
-                  'network': 'xhttp',
-                  'security': 'none',
-                  'xhttpSettings': {'path': '/' ~ ws_path, 'mode': 'auto', 'headers': {'User-Agent': xray_xhttp_user_agents | random}}
-                }
-              }[xray_transport]
-            }}
+          streamSettings:
+            network: ws
+            security: none
+            wsSettings:
+              path: "/{{ ws_path }}"
+        - listen: 127.0.0.1
+          port: "{{ xray_port | int + 1 }}"
+          protocol: vless
+          settings:
+            decryption: none
+            clients: "{{ vless_users }}"
+          streamSettings:
+            network: xhttp
+            security: none
+            xhttpSettings:
+              path: "/{{ ws_path }}"
+              mode: auto
+              headers:
+                User-Agent: "{{ xray_xhttp_user_agents | random }}"
       outbounds: "{{ xray_outbounds_base + ([{'protocol': 'freedom', 'tag': 'cpa', 'settings': {'redirect': '127.0.0.1:' ~ cliproxyapi_port}}] if xray_cpa_route_enabled | bool else []) }}"
       routing:
         # Маршрут к cliproxyapi (ADR 0012) стоит выше geoip:private
