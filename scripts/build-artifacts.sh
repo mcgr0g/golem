@@ -9,6 +9,8 @@ build="$root/build"
 arch="${TARGET_ARCH:-amd64}"
 caddy_version="${CADDY_VERSION:-v2.11.7}"
 xcaddy_version="${XCADDY_VERSION:-latest}"
+# Форк forwardproxy для NaïveProxy, полный SHA (shallow fetch по короткому не работает). Патчи Caddy берутся из него же.
+forwardproxy_ref="${FORWARDPROXY_REF:-e747854e78743dba85c039b38ed185fb11d93667}"
 gatus_version="${GATUS_VERSION:-v5.37.0}"
 bun_retries="${BUN_RETRIES:-3}"
 omp_repo="https://github.com/can1357/oh-my-pi"
@@ -44,18 +46,31 @@ omp_src() { # печатает путь к исходникам на нужно�
   echo "$dir"
 }
 
+# Рецепт сборки сервера NaïveProxy из .github/workflows/build.yml форка forwardproxy: патчи применяются к клону Caddy,
+# xcaddy подключает клон через --replace. Без патчей форк не собирается (нет caddyhttp.IdleTimeoutsFromContext).
+# Бинарник один на все хосты: forward_proxy без директивы в Caddyfile ничего не делает.
 build_caddy() {
-  need go
-  echo "== caddy $caddy_version linux/$arch"
-  local out="$build/$arch/caddy" mods
+  need go; need git
+  echo "== caddy $caddy_version linux/$arch (forwardproxy ${forwardproxy_ref:0:12})"
+  local out="$build/$arch/caddy" fp="$build/src/forwardproxy" cs="$build/src/caddy-patched" fp_caddy mods
+  rm -rf "$fp" "$cs"
+  git init -q "$fp"
+  git -C "$fp" fetch -q --depth 1 https://github.com/klzgrad/forwardproxy.git "$forwardproxy_ref"
+  git -C "$fp" -c advice.detachedHead=false checkout -q FETCH_HEAD
+  fp_caddy="$(<"$fp/CADDY_VERSION")"
+  [ "$fp_caddy" = "$caddy_version" ] || die "патчи forwardproxy рассчитаны на Caddy $fp_caddy, а CADDY_VERSION=$caddy_version"
+  git -c advice.detachedHead=false clone -q --depth 1 --branch "$caddy_version" https://github.com/caddyserver/caddy.git "$cs"
+  git -C "$cs" apply "$fp/caddy-sing-quic-bbrv1.patch" "$fp/caddy-read-idle-timeout.patch"
   # xcaddy ставим под хост (GOOS/GOARCH цели передаются только самой сборке)
   GOBIN="$build/tools" go install "github.com/caddyserver/xcaddy/cmd/xcaddy@$xcaddy_version"
   # -buildvcs=false: иначе в бинарник вшиваются коммит и время репозитория, и он меняется с каждым коммитом
   GOOS=linux GOARCH="$arch" CGO_ENABLED=0 GOFLAGS=-buildvcs=false \
     "$build/tools/xcaddy" build "$caddy_version" \
+    --replace "github.com/caddyserver/caddy/v2=$cs" \
+    --with "github.com/caddyserver/forwardproxy=$fp" \
     --with github.com/mholt/caddy-ratelimit --with github.com/caddy-dns/duckdns --output "$out"
   mods="$(go version -m "$out")"
-  printf '{"version":"%s","ratelimit":"%s","duckdns":"%s","sha256":"%s"}\n' "$caddy_version" \
+  printf '{"version":"%s","forwardproxy":"%s","ratelimit":"%s","duckdns":"%s","sha256":"%s"}\n' "$caddy_version" "$forwardproxy_ref" \
     "$(awk '$2=="github.com/mholt/caddy-ratelimit"{print $3}' <<<"$mods")" \
     "$(awk '$2=="github.com/caddy-dns/duckdns"{print $3}' <<<"$mods")" \
     "$(sha "$out")" >"$build/.meta/caddy-$arch.json"
