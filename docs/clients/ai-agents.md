@@ -59,5 +59,5 @@ https://pi.dev/packages/better-custom-provider
 
 Порядок: `tunnel:up` → панель `http://127.0.0.1:18317/management.html` → запуск входа → ссылка в браузер → авторизация. Проверено: вход прошёл через `tunnel:up`; через туннель mihomo (`GOLEM_CPA_LLM_PORT`) не прошёл (возврат на страницу выбора аккаунта). Какие именно порты были проброшены в успешном входе — Не проверено.
 
-Через mihomo `tunnels:` порт колбэка пробрасывается так же, как 18317: при `GOLEM_CPA_ROUTE` фрагмент `mihomo-uni-fragment.yaml` содержит строки для `xray_cpa_extra_ports` (по умолчанию 54545 - claude, 3002 - Gatus). Проверена цепочка порт Mac -> mihomo -> Xray -> loopback VPS (Lima). Не проверено: реальный OAuth-вход через эти туннели на dev/prod (Q19); колбэки codex (1455) и antigravity (51121) не проброшены.
+Через mihomo `tunnels:` порт колбэка пробрасывается так же, как 18317: при `GOLEM_CPA_ROUTE` фрагмент `mihomo-uni-fragment.yaml` содержит строки для `xray_cpa_extra_ports` (по умолчанию 54545 - claude, 1455 - codex, 3002 - Gatus). Проверена цепочка порт Mac -> mihomo -> Xray -> loopback VPS (Lima). Не проверено: реальный OAuth-вход через эти туннели (Q19); колбэк antigravity (51121) не проброшен. Пока Q19 открыт, для входа используйте SSH-туннель.
 

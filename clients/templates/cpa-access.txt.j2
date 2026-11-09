@@ -12,7 +12,7 @@ local_base_url_v1 = http://127.0.0.1:{{ client_artifacts_cpa_local_port }}/v1
 {% for p in xray_cpa_extra_ports %}
 #   - tcp,127.0.0.1:{{ p }},{{ xray_cpa_domain }}:{{ p }},golem-{{ inventory_hostname }}
 {% endfor %}
-# Доп. порты: 54545 - OAuth-колбэк CPA (claude), 3002 - UI Gatus; колбэки codex (1455) и antigravity (51121) не проброшены
+# Доп. порты: 54545 - OAuth-колбэк CPA (claude), 1455 - OAuth-колбэк CPA (codex), 3002 - UI Gatus; колбэк antigravity (51121) не проброшен
 # Имя {{ xray_cpa_domain }} в DNS не существует, его знает только Xray на VPS; клиент должен отправлять запрос на VPS с этим назначением.
 # Для клиентов без tunnels (прокси-режим): правило DOMAIN,{{ xray_cpa_domain }},golem-{{ inventory_hostname }} и адрес http://{{ xray_cpa_domain }}:{{ cliproxyapi_port }}
 # Ключ management (панель /management.html и /v0/management/*): только через туннель, не через Caddy
