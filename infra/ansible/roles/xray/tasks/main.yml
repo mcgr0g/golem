@@ -76,6 +76,19 @@
       - type: field
         ip: ["geoip:private"]
         outboundTag: block
+    xray_cpa_extra_outbounds: >-
+      {%- set out = [] -%}
+      {%- for p in xray_cpa_extra_ports -%}
+      {%- set _ = out.append({'protocol': 'freedom', 'tag': 'cpa-' ~ p, 'settings': {'redirect': '127.0.0.1:' ~ p}}) -%}
+      {%- endfor -%}
+      {{ out }}
+    xray_cpa_extra_rules: >-
+      {%- set out = [] -%}
+      {%- for p in xray_cpa_extra_ports -%}
+      {%- set _ = out.append({'type': 'field', 'domain': ['full:' ~ xray_cpa_domain], 'port': p | string, 'outboundTag': 'cpa-' ~ p}) -%}
+      {%- endfor -%}
+      {{ out }}
+    xray_cpa_outbounds: "{{ [{'protocol': 'freedom', 'tag': 'cpa', 'settings': {'redirect': '127.0.0.1:' ~ cliproxyapi_port}}] + xray_cpa_extra_outbounds }}"
     xray_config:
       log:
         loglevel: warning
@@ -105,10 +118,11 @@
               mode: auto
               headers:
                 User-Agent: "{{ xray_xhttp_user_agents | random }}"
-      outbounds: "{{ xray_outbounds_base + ([{'protocol': 'freedom', 'tag': 'cpa', 'settings': {'redirect': '127.0.0.1:' ~ cliproxyapi_port}}] if xray_cpa_route_enabled | bool else []) }}"
+      outbounds: "{{ xray_outbounds_base + (xray_cpa_outbounds if xray_cpa_route_enabled | bool else []) }}"
       routing:
-        # Маршрут к cliproxyapi (ADR 0012) стоит выше geoip:private
-        rules: "{{ ([{'type': 'field', 'domain': ['full:' ~ xray_cpa_domain], 'outboundTag': 'cpa'}] if xray_cpa_route_enabled | bool else []) + xray_base_rules }}"
+        # Маршруты к cliproxyapi (ADR 0012) и доп. портам loopback стоят выше geoip:private;
+        # правила с портом - выше общего правила имени (первое совпадение выигрывает)
+        rules: "{{ (xray_cpa_extra_rules + [{'type': 'field', 'domain': ['full:' ~ xray_cpa_domain], 'outboundTag': 'cpa'}] if xray_cpa_route_enabled | bool else []) + xray_base_rules }}"
   no_log: true
   notify: Перезапустить xray
 

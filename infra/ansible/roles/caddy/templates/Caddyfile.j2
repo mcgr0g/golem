@@ -155,9 +155,12 @@
 		file_server
 	}
 
-	# 429 и прочие ошибки, сгенерированные самим Caddy, тоже без заголовка Server
+	# 429 и прочие ошибки, сгенерированные самим Caddy, тоже без заголовка Server.
+	# Ответ только при числовом коде: у ошибки завершения туннеля forward_proxy кода нет, и
+	# `respond` с пустым `{err.status_code}` пишет в журнал `HTTP 500: strconv.Atoi: parsing ""` (ADR 0015)
 	handle_errors {
 		header -Server
-		respond "{err.status_code} {err.status_text}" {err.status_code}
+		@coded vars_regexp {err.status_code} ^[0-9][0-9][0-9]$
+		respond @coded "{err.status_code} {err.status_text}" {err.status_code}
 	}
 }

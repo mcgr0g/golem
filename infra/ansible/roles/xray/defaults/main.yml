@@ -4,6 +4,9 @@ xray_chain_enabled: false   # серверная цепочка к static ISP п
 # Маршрут имени xray_cpa_domain на loopback cliproxyapi (ADR 0012); включается в mise.local.toml: GOLEM_CPA_ROUTE = "true"
 xray_cpa_route_enabled: "{{ lookup('ansible.builtin.env', 'GOLEM_CPA_ROUTE') | default('false', true) | bool }}"
 xray_cpa_domain: cpa.golem
+# Доп. порты loopback VPS, доступные по имени xray_cpa_domain: клиент пробрасывает их `tunnels:` (mihomo), чтобы OAuth-колбэк
+# CPA (54545 - claude) и UI Gatus (3002) открывались на Mac без SSH-туннеля; [] отключает. Тот же список читает client_artifacts
+xray_cpa_extra_ports: [3002, 54545]
 xray_transport: ws  # ws | xhttp (legacy: единственный транспорт; используется для обратной совместимости)
 xray_transports: [ws, xhttp]  # список транспортов для multi-transport конфигов
 # Рандомизация XHTTP (extra headers)

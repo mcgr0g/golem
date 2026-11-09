@@ -19,6 +19,7 @@
 | `xray_chain_enabled` | host | `false` (`true` не реализовано, роль падает) | серверная цепочка |
 | `GOLEM_CPA_LLM_PORT` / `client_artifacts_cpa_local_port` | окружение (`mise.local.toml`) / роль | `18317` | локальный порт на Mac для туннеля к cliproxyapi (в `cpa-access.txt`); не 8317 |
 | `GOLEM_CPA_ROUTE` / `xray_cpa_route_enabled`, `xray_cpa_domain` | окружение (`mise.local.toml`) / роль | `false` (включение: `GOLEM_CPA_ROUTE = "true"`; через `-e` булево передавать JSON-ом), `cpa.golem` | маршрут имени в Xray на loopback cliproxyapi (ADR 0012); добавляет в `cpa-access.txt` туннельный адрес и `management_key` |
+| `xray_cpa_extra_ports` | роль (defaults) | `[3002, 54545]` | доп. порты loopback VPS по имени `xray_cpa_domain`: Xray получает на каждый `freedom`-outbound `cpa-<порт>` и правило «имя + порт», клиентский `mihomo-uni-fragment.yaml` и `cpa-access.txt` - строки `tunnels:` (54545 - OAuth-колбэк CPA, 3002 - UI Gatus); `[]` отключает; действует только при `GOLEM_CPA_ROUTE` |
 | `cliproxyapi_management_key` | host (sops) | 48 символов | открытый ключ management; попадает в `cpa-access.txt` при включённом маршруте |
 | `ram_alert_kb` | env | `51200` (по умолчанию в юните) | порог алерта |
 | `fail2ban_ignoreip` | env | `[]` | белый список |

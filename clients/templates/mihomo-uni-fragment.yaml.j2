@@ -42,4 +42,7 @@ proxy-providers:
 # Верхний уровень профиля: локальный порт к cliproxyapi через golem (ADR 0012)
 tunnels:
   - tcp,127.0.0.1:{{ client_artifacts_cpa_local_port }},{{ xray_cpa_domain }}:{{ cliproxyapi_port }},Pinned Proxy
+{% for p in xray_cpa_extra_ports %}
+  - tcp,127.0.0.1:{{ p }},{{ xray_cpa_domain }}:{{ p }},Pinned Proxy
+{% endfor %}
 {% endif %}
