@@ -12,6 +12,8 @@ GOLEM_DUCKDNS_SUBDOMAIN = "<sub>"
 # GOLEM_PUBLIC_IP = "<внешний IPv4>"
 # шлюз провайдера с SNAT и PROXY protocol: адрес шлюза (маска необязательна: без неё /32 или /128), при нескольких — через пробел; пусто (по умолчанию) = белый IP
 # GOLEM_PROXY_PROTOCOL_FROM = "17.18.0.13"
+# NaïveProxy (Caddy forward_proxy; ссылка для v2rayN/Throne появится в clients/generated/<хост>/v2rayn-naive.txt); по умолчанию выключено
+# GOLEM_NAIVE_ENABLED = "true"
 # проброс SSH-туннеля, элементы вида локальный_порт:удалённый_хост:удалённый_порт; несколько — через пробел
 GOLEM_TUNNEL_FORWARDS = "18317:127.0.0.1:8317 3002:127.0.0.1:3002 54545:127.0.0.1:54545"
 # локальный порт на Mac, куда клиент VLESS пробрасывает cliproxyapi (необязательно, по умолчанию 18317; не 8317)

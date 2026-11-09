@@ -1,6 +1,10 @@
 # {{ ansible_managed }}
 {
 	order rate_limit before basicauth
+{% if caddy_naive_enabled %}
+	# NaïveProxy: forward_proxy обязан идти раньше handle-блоков, иначе фолбэк-handle перехватит CONNECT (NOP, status 0)
+	order forward_proxy first
+{% endif %}
 	# 80 не слушаем: без редиректов, без HTTP-01
 	auto_https disable_redirects
 	servers {
@@ -18,7 +22,7 @@
 	}
 }
 
-{{ domain }} {
+{{ domain }}{% if caddy_naive_enabled %}, :443{% endif %} {
 {% if tls_mode == 'internal' %}
 	tls internal
 {% elif tls_mode == 'acme' %}
@@ -52,6 +56,17 @@
 	header -Server
 	header Strict-Transport-Security "max-age=31536000"
 
+{% if caddy_naive_enabled %}
+	# NaïveProxy (HTTP/2 CONNECT с padding). У CONNECT Host равен цели, поэтому адрес сайта включает :443 (иначе запрос не попадёт в этот блок).
+	# probe_resistance: без верных учётных данных запрос идёт дальше и получает обычный сайт
+	forward_proxy {
+		basic_auth {{ naive_user }} {{ naive_password }}
+		hide_ip
+		hide_via
+		probe_resistance
+	}
+
+{% endif %}
 	@ws_relay {
 		path /r/*
 		header Connection *Upgrade*

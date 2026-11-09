@@ -9,6 +9,9 @@
     build_dir: "{{ playbook_dir }}/../../../build"
     secrets_dir: "{{ playbook_dir }}/../secrets"
     build_manifest: "{{ lookup('ansible.builtin.file', build_dir ~ '/manifest.json') | from_json }}"
+    # NaïveProxy (Caddy forward_proxy): отдельного секрета нет, учётные данные берутся из первого VLESS-пользователя
+    naive_user: "{{ vless_users[0].email.split('@')[0] }}"
+    naive_password: "{{ vless_users[0].id }}"
   pre_tasks:
     - name: Загрузить секреты (sops, расшифровка на Mac)
       community.sops.load_vars:

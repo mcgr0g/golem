@@ -9,3 +9,5 @@ caddy_rl_static: 120
 
 # PROXY protocol от шлюза провайдера (SNAT): из общего proxy_protocol_from; пусто = белый IP, блок не рендерится
 caddy_proxy_protocol_from: "{{ proxy_protocol_from | default([]) }}"
+# NaïveProxy: forward_proxy, адрес сайта с :443 и order first; из общего naive_enabled; выключено = рендер прежний
+caddy_naive_enabled: "{{ naive_enabled | default(false) | bool }}"

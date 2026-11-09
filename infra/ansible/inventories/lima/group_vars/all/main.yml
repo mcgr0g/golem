@@ -22,3 +22,5 @@ cliproxyapi_openai_compatibility:
 # адреса/CIDR шлюза провайдера, шлющего PROXY protocol (SNAT); через пробел; пусто = белый IP (ADR 0013)
 proxy_protocol_from: "{{ lookup('ansible.builtin.env', 'GOLEM_PROXY_PROTOCOL_FROM', default='') | split }}"
 xray_transport: "xhttp"
+# NaïveProxy (Caddy forward_proxy, ADR 0015): выключен по умолчанию; GOLEM_NAIVE_ENABLED=true включает
+naive_enabled: "{{ lookup('ansible.builtin.env', 'GOLEM_NAIVE_ENABLED', default='false') | bool }}"

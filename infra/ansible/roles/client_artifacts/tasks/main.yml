@@ -17,3 +17,13 @@
   delegate_to: localhost
   become: false
   no_log: true
+
+- name: Клиентская ссылка NaïveProxy (v2rayN, Throne)
+  ansible.builtin.template:
+    src: "{{ client_artifacts_templates_dir }}/v2rayn-naive.txt.j2"
+    dest: "{{ client_artifacts_out_dir }}/v2rayn-naive.txt"
+    mode: "0600"
+  when: naive_enabled | default(false) | bool
+  delegate_to: localhost
+  become: false
+  no_log: true

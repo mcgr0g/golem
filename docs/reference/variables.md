@@ -34,6 +34,9 @@
 | `ssh_user` | env | `ronnie` | пользователь Ansible и `AllowUsers` |
 | `xray_version`, `xray_assets`, `cliproxyapi_version`, `cliproxyapi_assets` | all | `group_vars/all/versions.yml` | пины версий и sha256 по `target_arch` |
 | `proxy_protocol_from` (`GOLEM_PROXY_PROTOCOL_FROM`) | окружение (`mise.local.toml`), инвентори | пусто | адрес шлюза провайдера (SNAT + PROXY protocol); маска необязательна (без неё Caddy получает `/32` или `/128`), несколько адресов — через пробел; пусто = белый IP. Выводит `caddy_proxy_protocol_from` (listener_wrappers) и `fail2ban_proxy_protocol_from` (ignoreip); ADR 0013 |
+| `naive_enabled` (`GOLEM_NAIVE_ENABLED`) | окружение (`mise.local.toml`), инвентори | `false` | включает NaïveProxy: `caddy_naive_enabled` (forward_proxy, адрес сайта с `:443`, `order forward_proxy first`) и файл `v2rayn-naive.txt` в `client_artifacts`; ADR 0015 |
+| `naive_user`, `naive_password` | `playbooks/site.yml` (vars) | из первого `vless_users` | имя — `email` до `@`, пароль — `id`; отдельного секрета нет, ротация VLESS UUID меняет и их |
+| `FORWARDPROXY_REF` (`scripts/build-artifacts.sh`) | окружение сборки | SHA в скрипте | полный SHA форка klzgrad/forwardproxy; его `CADDY_VERSION` обязан совпадать с `CADDY_VERSION` скрипта |
 | `ops_timers_duckdns_ipv4` (`GOLEM_PUBLIC_IP`) | окружение (`mise.local.toml`) | пусто | явный IPv4 для A-записи DuckDNS; пусто — адрес исходящего запроса (за NAT может не совпасть с входящим) |
 | `duckdns_token` | common (sops) | — | DNS-01 и обновление DNS |
 | `GOLEM_SSH_HOST`, `GOLEM_SSH_PORT`, `GOLEM_DOMAIN`, `GOLEM_DUCKDNS_SUBDOMAIN` | окружение (`mise.local.toml`) | — | `ansible_host`, `ssh_external_port` (и `ansible_port`), `domain`, `duckdns_subdomain` прод-хоста |

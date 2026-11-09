@@ -13,3 +13,5 @@ proxy_protocol_from: "{{ lookup('ansible.builtin.env', 'GOLEM_PROXY_PROTOCOL_FRO
 # SSH через TUN требует увеличенного таймаута (подключение ~10 сек)
 ansible_ssh_common_args: "-o ConnectTimeout=60 -o ServerAliveInterval=30"
 xray_transport: "xhttp"
+# NaïveProxy (Caddy forward_proxy, ADR 0015): выключен по умолчанию; GOLEM_NAIVE_ENABLED=true включает
+naive_enabled: "{{ lookup('ansible.builtin.env', 'GOLEM_NAIVE_ENABLED', default='false') | bool }}"
