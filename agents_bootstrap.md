@@ -49,6 +49,7 @@ C4Context
 | `infra/ansible/` | инвентори, роли, плейбуки | все 11 ролей (base, firewall, ssh_hardening, caddy, xray, cliproxyapi, omp_relay, fail2ban, ops_timers, gatus, client_artifacts) проверены на Lima; bootstrap и prod не запускались |
 | `infra/lima/` | шаблоны Lima для тестов | шаблон `vps-test.yaml` (не проверен) |
 | `tests/mihomo/` | изолированный mihomo в Docker для проверки туннеля | проверен на stage; конфиг рендерится из `clients/generated/` |
+| `tests/naive/` | проверка NaïveProxy автономным клиентом naive (SOCKS5) против хоста из `inventories`; ссылка берётся из `clients/generated/` | проверен на golem-dev и golem01 (через TUN); прямой путь из РФ — Не проверено |
 | `build/` | артефакты сборки на Mac (в .gitignore) | заполняется `build:artifacts` |
 | `scripts/` | `secrets.sh` (секреты), `build-artifacts.sh` (сборка) | готово |
 | `mise.toml` | задачи: SSH-туннель (`tunnel:*`), `cpa:panel`, `secrets:*`, `build:artifacts`, `ansible:*`; параметры в `mise.local.toml` (вне git) | готово |
