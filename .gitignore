@@ -29,3 +29,4 @@ infra/ansible/inventories/*/group_vars/all/ssh_keys.yml
 # Конфиг тестового mihomo (секреты)
 tests/mihomo/config.yaml
 tests/mihomo/*.log
+*.bak
