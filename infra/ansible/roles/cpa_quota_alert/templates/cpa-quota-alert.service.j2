@@ -1,0 +1,20 @@
+# {{ ansible_managed }}
+[Unit]
+Description=Алерты квот OAuth-аккаунтов CPA
+After=cliproxyapi.service
+
+[Service]
+Type=oneshot
+EnvironmentFile=/etc/golem/telegram.env
+EnvironmentFile=/etc/golem/cpa-monitor.env
+ExecStart=/usr/bin/python3 {{ cpa_quota_alert_scripts_dir }}/cpa_quota_alert.py /etc/golem/cpa-quota-alert.toml
+DynamicUser=yes
+# пороговое состояние переживает перезагрузку; маркер «запущен отправлен» в /run очищается при загрузке
+StateDirectory=golem-cpa-quota
+RuntimeDirectory=golem-cpa-quota
+RuntimeDirectoryPreserve=yes
+MemoryMax=64M
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true

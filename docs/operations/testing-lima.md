@@ -10,3 +10,4 @@
 - Что проверяется в Lima: идемпотентность, systemd-юниты и `MemoryMax`, маршрутизация Caddy, WS-пробы, Xray ↔ mihomo на Mac, rate limit/fail2ban, нагрузка на 1 GiB.
 - Что нельзя проверить в Lima (только прод): выпуск Let's Encrypt по ALPN, внешняя доступность 443, DuckDNS обновление, реальная латентность. Эти пункты — в `smoke-checklist.md`, раздел «Прод».
 - Задержка первого токена заглушки: `FAKE_LLM_FIRST_TOKEN_DELAY=40 tests/fake-llm/lima.sh start`; heartbeat cliproxyapi включается `-e '{"cliproxyapi_keepalive_seconds":10,"cliproxyapi_keepalive_before_first_token":true}'` (`components/cliproxyapi.md`).
+- Алерты квот CPA: `python3 -m unittest discover -s tests/cpa_quota_alert -v` (без VM) и `mise run ansible:site lima --tags cpa_quota_alert`; в Lima нет OAuth-аккаунтов и нет маршрута к `api.telegram.org`, сквозной прогон - на заглушках (`components/cpa-quota-alert.md`, «Проверено»).

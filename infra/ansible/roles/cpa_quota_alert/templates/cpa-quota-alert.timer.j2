@@ -1,0 +1,11 @@
+# {{ ansible_managed }}
+[Unit]
+Description=Таймер алертов квот CPA
+
+[Timer]
+OnBootSec=3min
+OnUnitActiveSec={{ cpa_quota_alert_interval }}
+AccuracySec=30s
+
+[Install]
+WantedBy=timers.target

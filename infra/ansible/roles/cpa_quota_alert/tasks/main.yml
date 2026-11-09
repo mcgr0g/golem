@@ -1,0 +1,49 @@
+---
+# Требует роль ops_timers выше в плейбуке: /etc/golem/telegram.env создаёт она.
+- name: Проверить Python 3.11+ (tomllib) для скрипта
+  ansible.builtin.command: /usr/bin/python3 -c "import tomllib, zoneinfo"
+  changed_when: false
+
+- name: Скрипт
+  ansible.builtin.copy:
+    src: cpa_quota_alert.py
+    dest: "{{ cpa_quota_alert_scripts_dir }}/cpa_quota_alert.py"
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Настройки
+  ansible.builtin.template:
+    src: cpa-quota-alert.toml.j2
+    dest: /etc/golem/cpa-quota-alert.toml
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Файл окружения с ключом management
+  ansible.builtin.template:
+    src: cpa-monitor.env.j2
+    dest: /etc/golem/cpa-monitor.env
+    owner: root
+    group: root
+    mode: "0600"
+  no_log: true
+
+- name: Служба и таймер
+  ansible.builtin.template:
+    src: "cpa-quota-alert.{{ item }}.j2"
+    dest: "/etc/systemd/system/cpa-quota-alert.{{ item }}"
+    owner: root
+    group: root
+    mode: "0644"
+  loop: [service, timer]
+  notify: Перечитать systemd (cpa_quota_alert)
+
+- name: Применить юниты
+  ansible.builtin.meta: flush_handlers
+
+- name: Запуск таймера
+  ansible.builtin.systemd:
+    name: cpa-quota-alert.timer
+    enabled: true
+    state: started

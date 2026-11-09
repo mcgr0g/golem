@@ -35,6 +35,7 @@ C4Context
 | Caddy / Xray / cliproxyapi / omp relay | `docs/components/<имя>.md` |
 | SSH, UFW, fail2ban, секреты (sops+age, инструкция для новичков) | `docs/components/security-baseline.md`, `docs/operations/secrets.md` |
 | Мониторинг (Gatus), RAM-алерт, DuckDNS | `docs/components/ops-timers.md` |
+| Алерты квот OAuth-аккаунтов CPA в Telegram | `docs/components/cpa-quota-alert.md` |
 | Клиенты: clash-verge-rev, v2rayN, Throne, Dolphin Anty | `docs/clients/` |
 | Исследования и эксперименты (доступ клиентов к cliproxyapi, разделение портов SSH) | `docs/research/` |
 | Первый запуск стенда (Lima, stage, prod): что задать и в каком порядке | `docs/first-start.md`, `docs/first-start-lima.md`, `docs/first-start-vps.md` |
@@ -46,10 +47,11 @@ C4Context
 
 | Путь | Назначение | Статус |
 | :--- | :--- | :--- |
-| `infra/ansible/` | инвентори, роли, плейбуки | все 11 ролей (base, firewall, ssh_hardening, caddy, xray, cliproxyapi, omp_relay, fail2ban, ops_timers, gatus, client_artifacts) проверены на Lima; bootstrap и prod не запускались |
+| `infra/ansible/` | инвентори, роли, плейбуки | 12 ролей (base, firewall, ssh_hardening, caddy, xray, cliproxyapi, omp_relay, fail2ban, ops_timers, cpa_quota_alert, gatus, client_artifacts); 11 из них проверены на Lima целиком, `cpa_quota_alert` - отдельным прогоном `--tags` на Lima; bootstrap и prod не запускались |
 | `infra/lima/` | шаблоны Lima для тестов | шаблон `vps-test.yaml` (не проверен) |
 | `tests/mihomo/` | изолированный mihomo в Docker для проверки туннеля | проверен на stage; конфиг рендерится из `clients/generated/` |
 | `tests/naive/` | проверка NaïveProxy автономным клиентом naive (SOCKS5) против хоста из `inventories`; ссылка берётся из `clients/generated/` | проверен на golem-dev и golem01 (через TUN); прямой путь из РФ — Не проверено |
+| `tests/cpa_quota_alert/` | unittest логики алертов квот CPA (stdlib, без Ansible) | 22 теста, `python3 -m unittest discover -s tests/cpa_quota_alert` |
 | `build/` | артефакты сборки на Mac (в .gitignore) | заполняется `build:artifacts` |
 | `scripts/` | `secrets.sh` (секреты), `build-artifacts.sh` (сборка) | готово |
 | `mise.toml` | задачи: SSH-туннель (`tunnel:*`), `cpa:panel`, `secrets:*`, `build:artifacts`, `ansible:*`; параметры в `mise.local.toml` (вне git) | готово |

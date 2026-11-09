@@ -1,0 +1,4 @@
+---
+- name: Перечитать systemd (cpa_quota_alert)
+  ansible.builtin.systemd:
+    daemon_reload: true

@@ -44,5 +44,6 @@
 | `GOLEM_SSH_PORT_INTERNAL` | окружение (`mise.local.toml`), необязательно | пусто → равен `GOLEM_SSH_PORT`; при DNAT `22` | `ssh_port` (порт sshd). Заданный — признак DNAT: `ansible:bootstrap` ходит на внешний порт, а не на 22 |
 | `gatus_enabled` | host | `false` (в Lima `true`) | роль мониторинга |
 | `telegram_bot_token`, `telegram_chat_id` | env (sops) | — | алерты Gatus и ram-alert |
+| `cpa_quota_alert_{enabled,interval,thresholds,quota_providers,display_tz,timeout_seconds}` | роль (defaults) | `true`, `15min`, `[15, 10, 5]`, `[claude]`, `UTC`, `20` | алерты квот CPA (`components/cpa-quota-alert.md`); роль работает при непустом `cliproxyapi_management_key`; `quota_providers` - только те, для которых в скрипте есть разбор окон (`claude`) |
 | `ssh_authorized_keys` | env (локальный файл, .gitignore) | список pub-ключей | доступ `ronnie` |
 | `duckdns_subdomain` | host | prod: `golem01`; тест: `golem-dev` | домены `golem01.duckdns.org`, `golem-dev.duckdns.org` |

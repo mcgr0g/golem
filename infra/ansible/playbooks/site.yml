@@ -51,5 +51,6 @@
     - { role: omp_relay, tags: [omp_relay] }
     - { role: fail2ban, tags: [fail2ban] }
     - { role: ops_timers, tags: [ops_timers] }
+    - { role: cpa_quota_alert, tags: [cpa_quota_alert], when: "cpa_quota_alert_enabled | default(true) | bool and cliproxyapi_management_key | default('') | length > 0" }
     - { role: gatus, tags: [gatus], when: gatus_enabled | default(false) | bool }
     - { role: client_artifacts, tags: [client_artifacts] }

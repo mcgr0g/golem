@@ -21,3 +21,4 @@
 | 0013 | PROXY protocol за SNAT-шлюзом провайдера |
 | 0014 | Bootstrap-only конфиг cliproxyapi; ключи управляются через панель |
 | 0015 | NaïveProxy через Caddy forward_proxy |
+| 0016 | Алерты квот CPA: скрипт-таймер на Python, не Gatus |

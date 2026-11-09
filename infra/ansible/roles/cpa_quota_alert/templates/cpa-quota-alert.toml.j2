@@ -1,0 +1,12 @@
+# {{ ansible_managed }}
+# Настройки cpa_quota_alert. Секреты (ключ management, токен Telegram) сюда не попадают:
+# они в /etc/golem/cpa-monitor.env и /etc/golem/telegram.env.
+host = {{ inventory_hostname | to_json }}
+api_url = "http://127.0.0.1:{{ cliproxyapi_port }}/v8/management/credentials"
+telegram_api = "https://api.telegram.org"
+timeout_seconds = {{ cpa_quota_alert_timeout_seconds }}
+# порог срабатывает при остатке <= значения; от большего к меньшему
+thresholds = {{ cpa_quota_alert_thresholds | to_json }}
+# провайдеры, у которых разбираются окна лимита; остальные - только статус аккаунта
+quota_providers = {{ cpa_quota_alert_quota_providers | to_json }}
+display_tz = {{ cpa_quota_alert_display_tz | to_json }}

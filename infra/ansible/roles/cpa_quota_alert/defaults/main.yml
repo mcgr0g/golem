@@ -1,0 +1,13 @@
+---
+# роль включается, если есть открытый ключ management (SOPS) и не выключена явно
+cpa_quota_alert_enabled: true
+cpa_quota_alert_scripts_dir: /usr/local/lib/golem
+# интервал опроса GET /v8/management/credentials; один запрос за запуск
+cpa_quota_alert_interval: 15min
+# пороги остатка квоты, %; сообщение - когда остаток впервые опустился до порога в текущем окне лимита
+cpa_quota_alert_thresholds: [15, 10, 5]
+# провайдеры с разбором квот; claude проверен на prod (2026-11-09), формат codex не проверен
+cpa_quota_alert_quota_providers: [claude]
+# часовой пояс времени сброса в сообщениях (имя IANA или UTC)
+cpa_quota_alert_display_tz: UTC
+cpa_quota_alert_timeout_seconds: 20

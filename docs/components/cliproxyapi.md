@@ -25,6 +25,21 @@
 
 Статика панели: роль кладёт `management.html` в `/var/lib/cliproxyapi/static/` (проверка sha256, до первого старта), `management.disable-auto-update-panel: true`. Без `MANAGEMENT_STATIC_PATH` панель отвечает 404.
 
+## Экстренная смена ключа management
+
+Открытый ключ лежит в нескольких местах, а конфиг CPA принадлежит панели (ADR 0014): после смены ключа в панели SOPS и сервер расходятся.
+
+| Где | Что | Как меняется |
+| :--- | :--- | :--- |
+| SOPS хоста: `cliproxyapi_management_key` (+ `cliproxyapi_management_key_hash`) | источник для Ansible | `mise run secrets:edit <host>` |
+| `/var/lib/cliproxyapi/config.yaml`, `management.secret-key` | bcrypt-хэш, по нему CPA проверяет ключ | панель CPA |
+| `/etc/golem/cpa-monitor.env` (0600) | открытый ключ для `cpa-quota-alert` | `mise run ansible:site <host> --tags cpa_quota_alert` |
+| `clients/generated/<host>/cpa-access.txt` | открытый ключ у владельца | `mise run ansible:site <host> --tags client_artifacts` |
+
+Порядок после смены в панели: записать новый открытый ключ в `cliproxyapi_management_key` (`secrets:edit <host>`), выполнить `ansible:site <host> --tags cpa_quota_alert,client_artifacts`. Если `cpa-quota-alert` уже получил 401/403, он остановил опрос после одной неверной попытки: `sudo rm /var/lib/private/golem-cpa-quota/auth-failed`, затем `sudo systemctl start cpa-quota-alert.service` (`components/cpa-quota-alert.md`).
+
+Не проверено: позволяет ли панель менять ключ management; принимает ли CPA в `management.secret-key` открытое значение и хэширует ли его сам. Если ключ нужно сменить не из панели (компрометация), хэш в `config.yaml` заменяется вручную (хэш для `secrets:rotate <host> mgmt` считает `scripts/secrets.sh`), затем `systemctl restart cliproxyapi`; порядок не проверялся.
+
 ## Управление ключами доступа
 
 При bootstrap конфиг содержит начальный набор ключей из SOPS; они доступны в `cpa-keys.txt`. После этого ключи управляются через панель:
